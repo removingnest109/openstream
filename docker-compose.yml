@@ -8,25 +8,17 @@ services:
       - "1433:1433"
     volumes:
       - sql-data:/var/opt/mssql
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -U sa -P $$SA_PASSWORD -Q 'SELECT 1' || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
 
   openstream-server:
     build:
       context: .
       dockerfile: src/Openstream.Server/Dockerfile
-    depends_on:
-      sql-server:
-        condition: service_healthy
     environment:
       SA_PASSWORD: "YourStrong!Passw0rd"  # Pass to wait script
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
       Ingestion__MusicLibraryPath: "/music"
     ports:
-      - "8080:80"
+      - "8080:8080"
     volumes:
       - ./music:/music
 
