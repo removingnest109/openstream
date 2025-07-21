@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/ethan/Documents/dotnet/src/Openstream.Server/Openstream.Server.csproj": {}
+    "/home/ethan/Documents/dotnet/openstream/src/Openstream.Server/Openstream.Server.csproj": {}
   },
   "projects": {
-    "/home/ethan/Documents/dotnet/src/Openstream.Server/Openstream.Server.csproj": {
+    "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ethan/Documents/dotnet/src/Openstream.Server/Openstream.Server.csproj",
-        "projectName": "Openstream.Server",
-        "projectPath": "/home/ethan/Documents/dotnet/src/Openstream.Server/Openstream.Server.csproj",
+        "projectUniqueName": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj",
+        "projectName": "Openstream.Core",
+        "projectPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj",
         "packagesPath": "/home/ethan/.nuget/packages/",
-        "outputPath": "/home/ethan/Documents/dotnet/src/Openstream.Server/obj/",
+        "outputPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/ethan/.nuget/NuGet/NuGet.Config"
@@ -43,10 +43,93 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.5, 9.0.5]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.106/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/ethan/Documents/dotnet/openstream/src/Openstream.Server/Openstream.Server.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Server/Openstream.Server.csproj",
+        "projectName": "Openstream.Server",
+        "projectPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Server/Openstream.Server.csproj",
+        "packagesPath": "/home/ethan/.nuget/packages/",
+        "outputPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Server/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/ethan/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj": {
+                "projectPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.5, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.7, )"
             }
           },
           "imports": [

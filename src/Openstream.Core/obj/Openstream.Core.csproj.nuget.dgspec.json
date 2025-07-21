@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/ethan/Documents/dotnet/src/Openstream.Core/Openstream.Core.csproj": {}
+    "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj": {}
   },
   "projects": {
-    "/home/ethan/Documents/dotnet/src/Openstream.Core/Openstream.Core.csproj": {
+    "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/ethan/Documents/dotnet/src/Openstream.Core/Openstream.Core.csproj",
+        "projectUniqueName": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj",
         "projectName": "Openstream.Core",
-        "projectPath": "/home/ethan/Documents/dotnet/src/Openstream.Core/Openstream.Core.csproj",
+        "projectPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/Openstream.Core.csproj",
         "packagesPath": "/home/ethan/.nuget/packages/",
-        "outputPath": "/home/ethan/Documents/dotnet/src/Openstream.Core/obj/",
+        "outputPath": "/home/ethan/Documents/dotnet/openstream/src/Openstream.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/ethan/.nuget/NuGet/NuGet.Config"
@@ -43,6 +43,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
