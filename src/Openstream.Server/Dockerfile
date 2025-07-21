@@ -52,4 +52,4 @@ RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
 USER appuser
 
 # Set entrypoint to use wait script
-ENTRYPOINT ["./wait-for-sql.sh"]
+ENTRYPOINT ["./wait-for-sql.sh", "server"]

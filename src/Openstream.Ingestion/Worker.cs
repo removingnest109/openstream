@@ -2,6 +2,7 @@ using Openstream.Core.Data;
 using Openstream.Ingestion.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Openstream.Core.Models;
 
 namespace Openstream.Ingestion;
 
@@ -22,7 +23,7 @@ public class Worker(
                 using var scope = scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<MusicDbContext>();
                 
-                await ScanDirectory(config.Value.MusicLibraryPath, db, scanner);
+                await ScanDirectory(config.Value.MusicLibraryPath, db, scanner, stoppingToken);
             }
             catch (Exception ex)
             {
@@ -33,22 +34,53 @@ public class Worker(
         }
     }
 
-    private async Task ScanDirectory(string path, MusicDbContext db, MusicScanner scanner)
+    private async Task ScanDirectory(string path, MusicDbContext db, MusicScanner scanner, CancellationToken cancellationToken)
     {
         var supported = new[] { ".mp3", ".flac", ".m4a", ".wav", ".ogg" };
         var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
             .Where(f => supported.Contains(Path.GetExtension(f).ToLower()));
-        
+
+        var newTracks = new List<Track>();
+
         foreach (var file in files)
         {
-            var track = scanner.ProcessFile(file);
-            if (track == null) continue;
-            
-            if (!await db.Tracks.AnyAsync(t => t.Path == file))
+            if (cancellationToken.IsCancellationRequested) break;
+
+            if (await db.Tracks.AnyAsync(t => t.Path == file, cancellationToken)) continue;
+
+            var trackData = scanner.ProcessFile(file);
+            if (trackData == null) continue;
+
+            var artistName = trackData.Album.Artist.Name;
+            var artist = await db.Artists.FirstOrDefaultAsync(a => a.Name == artistName, cancellationToken)
+                         ?? new Artist { Name = artistName };
+
+            var albumTitle = trackData.Album.Title;
+            var album = await db.Albums.FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist.Name == artistName, cancellationToken)
+                        ?? new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
+
+            var track = new Track
             {
-                db.Tracks.Add(track);
-                await db.SaveChangesAsync();
-            }
+                Title = trackData.Title,
+                Path = trackData.Path,
+                Duration = trackData.Duration,
+                TrackNumber = trackData.TrackNumber,
+                Album = album
+            };
+
+            newTracks.Add(track);
+        }
+
+        if (newTracks.Count > 0)
+        {
+            logger.LogInformation("Found {Count} new tracks. Saving to database...", newTracks.Count);
+            db.Tracks.AddRange(newTracks);
+            await db.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Successfully saved {Count} new tracks.", newTracks.Count);
+        }
+        else
+        {
+            logger.LogInformation("No new tracks found.");
         }
     }
 }

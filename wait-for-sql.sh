@@ -16,4 +16,11 @@ wait_for_sql sql-server 1433
 
 # Start the application
 echo "Starting application..."
-exec dotnet Openstream.Server.dll "$@"
+if [ "$1" == "server" ]; then
+    exec dotnet Openstream.Server.dll
+elif [ "$1" == "ingestion" ]; then
+    exec dotnet Openstream.Ingestion.dll
+else
+    echo "Invalid argument. Please use 'server' or 'ingestion'."
+    exit 1
+fi

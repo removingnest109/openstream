@@ -12,3 +12,7 @@ src/Openstream.Server/app/
 src/Openstream.Server/bin/
 
 src/Openstream.Server/obj/
+
+.idea/
+
+music/
