@@ -1,0 +1,14 @@
+
+src/Openstream.Core/bin/
+
+src/Openstream.Core/obj/
+
+src/Openstream.Ingestion/bin/
+
+src/Openstream.Ingestion/obj/
+
+src/Openstream.Server/app/
+
+src/Openstream.Server/bin/
+
+src/Openstream.Server/obj/
