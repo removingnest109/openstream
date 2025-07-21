@@ -1,0 +1,6 @@
+@Openstream.Server_HostAddress = http://localhost:5130
+
+GET {{Openstream.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
