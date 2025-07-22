@@ -40,7 +40,7 @@ Options:
 - `-m` Music library path (default: ./music)
 
 #### Using Docker
-Edit `docker-compose.yaml` to set your SQL Server connection string if needed.
+Edit `docker-compose.yml` to set your SQL Server connection string if needed.
 ```bash
 docker-compose up
 ```
