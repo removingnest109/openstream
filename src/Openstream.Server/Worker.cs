@@ -36,11 +36,24 @@ public class Worker(
 
     private async Task ScanDirectory(string path, MusicDbContext db, MusicScanner scanner, CancellationToken cancellationToken)
     {
+        // Remove tracks whose files no longer exist
+        var allTracks = await db.Tracks.ToListAsync(cancellationToken);
+        var tracksToRemove = allTracks.Where(t => !System.IO.File.Exists(t.Path)).ToList();
+
+        if (tracksToRemove.Count > 0)
+        {
+            logger.LogInformation("Removing {Count} tracks with missing files...", tracksToRemove.Count);
+            db.Tracks.RemoveRange(tracksToRemove);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
         var supported = new[] { ".mp3", ".flac", ".m4a", ".wav", ".ogg" };
         var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
             .Where(f => supported.Contains(Path.GetExtension(f).ToLower()));
 
         var newTracks = new List<Track>();
+        var artistCache = new Dictionary<string, Artist>(StringComparer.OrdinalIgnoreCase);
+        var albumCache = new Dictionary<(string Title, string ArtistName), Album>();
 
         foreach (var file in files)
         {
@@ -52,12 +65,36 @@ public class Worker(
             if (trackData == null || trackData.Album == null || trackData.Album.Artist == null) continue;
 
             var artistName = trackData.Album.Artist.Name ?? "Unknown Artist";
-            var artist = await db.Artists.FirstOrDefaultAsync(a => a.Name == artistName, cancellationToken)
-                         ?? new Artist { Name = artistName };
+            if (!artistCache.TryGetValue(artistName, out var artist))
+            {
+                artist = await db.Artists.FirstOrDefaultAsync(a => a.Name == artistName, cancellationToken);
+                if (artist == null)
+                {
+                    artist = new Artist { Name = artistName };
+                    artistCache[artistName] = artist;
+                }
+                else
+                {
+                    artistCache[artistName] = artist;
+                }
+            }
 
             var albumTitle = trackData.Album.Title ?? "Unknown Album";
-            var album = await db.Albums.FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist != null && a.Artist.Name == artistName, cancellationToken)
-                        ?? new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
+            var albumKey = (albumTitle, artistName);
+            if (!albumCache.TryGetValue(albumKey, out var album))
+            {
+                album = await db.Albums.Include(a => a.Artist)
+                    .FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist != null && a.Artist.Name == artistName, cancellationToken);
+                if (album == null)
+                {
+                    album = new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
+                    albumCache[albumKey] = album;
+                }
+                else
+                {
+                    albumCache[albumKey] = album;
+                }
+            }
 
             var track = new Track
             {
@@ -74,6 +111,16 @@ public class Worker(
         if (newTracks.Count > 0)
         {
             logger.LogInformation("Found {Count} new tracks. Saving to database...", newTracks.Count);
+            foreach (var artist in artistCache.Values)
+            {
+                if (artist.Id == 0 && !db.Artists.Local.Any(a => a.Name == artist.Name))
+                    db.Artists.Add(artist);
+            }
+            foreach (var album in albumCache.Values)
+            {
+                if (album.Id == 0 && !db.Albums.Local.Any(a => a.Title == album.Title && a.Artist != null && a.Artist.Name == album.Artist?.Name))
+                    db.Albums.Add(album);
+            }
             db.Tracks.AddRange(newTracks);
             await db.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Successfully saved {Count} new tracks.", newTracks.Count);
