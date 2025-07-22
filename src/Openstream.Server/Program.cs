@@ -34,6 +34,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Audience = builder.Configuration["Auth:Audience"];
     });
 
+
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 var app = builder.Build();
 
 // Initialize database
