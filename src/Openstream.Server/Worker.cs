@@ -1,10 +1,10 @@
 using Openstream.Core.Data;
-using Openstream.Ingestion.Services;
+using Openstream.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Openstream.Core.Models;
 
-namespace Openstream.Ingestion;
+namespace Openstream.Server;
 
 public class Worker(
     ILogger<Worker> logger,
@@ -49,14 +49,14 @@ public class Worker(
             if (await db.Tracks.AnyAsync(t => t.Path == file, cancellationToken)) continue;
 
             var trackData = scanner.ProcessFile(file);
-            if (trackData == null) continue;
+            if (trackData == null || trackData.Album == null || trackData.Album.Artist == null) continue;
 
-            var artistName = trackData.Album.Artist.Name;
+            var artistName = trackData.Album.Artist.Name ?? "Unknown Artist";
             var artist = await db.Artists.FirstOrDefaultAsync(a => a.Name == artistName, cancellationToken)
                          ?? new Artist { Name = artistName };
 
-            var albumTitle = trackData.Album.Title;
-            var album = await db.Albums.FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist.Name == artistName, cancellationToken)
+            var albumTitle = trackData.Album.Title ?? "Unknown Album";
+            var album = await db.Albums.FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist != null && a.Artist.Name == artistName, cancellationToken)
                         ?? new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
 
             var track = new Track

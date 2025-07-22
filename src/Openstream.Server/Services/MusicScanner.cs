@@ -1,6 +1,6 @@
 using Openstream.Core.Models;
 
-namespace Openstream.Ingestion.Services;
+namespace Openstream.Server.Services;
 
 public class MusicScanner
 {
@@ -17,7 +17,7 @@ public class MusicScanner
                 Title = file.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
                 Path = filePath,
                 Duration = file.Properties.Duration,
-								TrackNumber = (int)file.Tag.Track,
+                TrackNumber = (int)file.Tag.Track,
                 Album = new Album
                 {
                     Title = file.Tag.Album ?? "Unknown Album",

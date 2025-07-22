@@ -1,3 +1,6 @@
+using Openstream.Server;
+using Openstream.Server.Services;
+using Microsoft.Extensions.Options;
 using Openstream.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,6 +20,11 @@ builder.Services.AddEndpointsApiExplorer();
 // Configure database
 builder.Services.AddDbContext<MusicDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register ingestion background service
+builder.Services.AddSingleton<MusicScanner>();
+builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
+builder.Services.AddHostedService<Worker>();
 
 // Configure authentication (for future use)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

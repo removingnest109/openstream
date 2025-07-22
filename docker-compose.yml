@@ -22,17 +22,6 @@ services:
     volumes:
       - ./music:/music
 
-  openstream-ingestion:
-    build:
-      context: .
-      dockerfile: src/Openstream.Ingestion/Dockerfile
-    environment:
-      ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
-      Ingestion__MusicLibraryPath: "/music"
-    volumes:
-      - ./music:/music
-    depends_on:
-      - sql-server
 
 volumes:
   sql-data:
