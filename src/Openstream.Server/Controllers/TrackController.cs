@@ -41,7 +41,6 @@ public class TracksController : ControllerBase
         if (track == null || !System.IO.File.Exists(track.Path))
             return NotFound();
 
-        // Determine MIME type based on file extension
         var ext = Path.GetExtension(track.Path).ToLowerInvariant();
         var mime = ext switch
         {

@@ -14,7 +14,6 @@ services:
       context: .
       dockerfile: src/Openstream.Server/Dockerfile
     environment:
-      SA_PASSWORD: "YourStrong!Passw0rd"  # Pass to wait script
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
       Ingestion__MusicLibraryPath: "/music"
     ports:

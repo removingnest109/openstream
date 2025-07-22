@@ -1,5 +1,5 @@
-name: flutter_test_1
-description: first Flutter test
+name: openstream_music_player
+description: Openstream Music Player for use with Openstream server
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
