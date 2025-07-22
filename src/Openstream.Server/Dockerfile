@@ -6,7 +6,6 @@ WORKDIR /src
 COPY ["Openstream.sln", "."]
 COPY ["src/Openstream.Core/*.csproj", "src/Openstream.Core/"]
 COPY ["src/Openstream.Server/*.csproj", "src/Openstream.Server/"]
-COPY ["src/Openstream.Ingestion/*.csproj", "src/Openstream.Ingestion/"]
 
 # Restore dependencies
 RUN dotnet restore "Openstream.sln"

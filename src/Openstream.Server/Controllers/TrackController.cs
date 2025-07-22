@@ -41,6 +41,18 @@ public class TracksController : ControllerBase
         if (track == null || !System.IO.File.Exists(track.Path))
             return NotFound();
 
-        return PhysicalFile(track.Path, "audio/mpeg", enableRangeProcessing: true);
+        // Determine MIME type based on file extension
+        var ext = Path.GetExtension(track.Path).ToLowerInvariant();
+        var mime = ext switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".flac" => "audio/flac",
+            ".wav" => "audio/wav",
+            ".ogg" => "audio/ogg",
+            ".m4a" => "audio/mp4",
+            _ => "application/octet-stream"
+        };
+
+        return PhysicalFile(track.Path, mime, enableRangeProcessing: true);
     }
 }

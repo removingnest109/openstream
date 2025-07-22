@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Openstream.Server", "src\Op
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Openstream.Core", "src\Openstream.Core\Openstream.Core.csproj", "{8950C1A9-C7D3-41E8-9076-69CDB0D5750C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Openstream.Ingestion", "src\Openstream.Ingestion\Openstream.Ingestion.csproj", "{833BDA85-3F07-44C4-A891-8AB1864D5CBF}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,14 +26,9 @@ Global
 		{8950C1A9-C7D3-41E8-9076-69CDB0D5750C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8950C1A9-C7D3-41E8-9076-69CDB0D5750C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8950C1A9-C7D3-41E8-9076-69CDB0D5750C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{833BDA85-3F07-44C4-A891-8AB1864D5CBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{833BDA85-3F07-44C4-A891-8AB1864D5CBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{833BDA85-3F07-44C4-A891-8AB1864D5CBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{833BDA85-3F07-44C4-A891-8AB1864D5CBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E04CAD46-E3CE-419D-8CFE-96E4367CC5F8} = {6063832A-6B78-4157-A3C4-FF95F4258018}
 		{8950C1A9-C7D3-41E8-9076-69CDB0D5750C} = {6063832A-6B78-4157-A3C4-FF95F4258018}
-		{833BDA85-3F07-44C4-A891-8AB1864D5CBF} = {6063832A-6B78-4157-A3C4-FF95F4258018}
 	EndGlobalSection
 EndGlobal
