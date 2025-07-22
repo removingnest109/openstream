@@ -25,12 +25,11 @@ cd openstream
 ### 2. Prepare Your Music Library
 Place your music files in a directory (default: `./music`). Supported formats: mp3, flac, wav, ogg, m4a.
 
-### 3. Configure the Database
-Edit `src/Openstream.Server/appsettings.json` or use environment variables to set your SQL Server connection string if needed.
-
-### 4. Run the Server
+### 3. Run the Server
 
 #### Using .NET (Recommended for Development)
+Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
+
 ```bash
 ./start-server.sh
 ```
@@ -41,6 +40,7 @@ Options:
 - `-m` Music library path (default: ./music)
 
 #### Using Docker
+Edit `docker-compose.yaml` to set your SQL Server connection string if needed.
 ```bash
 docker-compose up
 ```
