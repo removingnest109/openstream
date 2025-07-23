@@ -136,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       return Column(
                         children: [
                           Slider(
-                            value: position.inMilliseconds.toDouble(),
+                            value: position.inMilliseconds.toDouble().clamp(0.0, duration.inMilliseconds.toDouble()),
                             max: duration.inMilliseconds.toDouble(),
                             onChanged: (value) {
                               _seek(Duration(milliseconds: value.round()));
@@ -166,12 +166,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           blankSpace: 40.0,
                                           velocity: 10.0,
-                                          pauseAfterRound: const Duration(seconds: 1),
-                                          startPadding: 10.0,
-                                          accelerationDuration: const Duration(seconds: 1),
-                                          accelerationCurve: Curves.linear,
-                                          decelerationDuration: const Duration(milliseconds: 500),
-                                          decelerationCurve: Curves.easeOut,
                                         ),
                                       );
                                     } else {
