@@ -51,15 +51,26 @@ public class Worker(
         var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
             .Where(f => supported.Contains(Path.GetExtension(f).ToLower()));
 
+        // Load all existing track paths, artists, and albums into memory for fast lookup
+        var existingTrackPaths = new HashSet<string>(allTracks.Select(t => t.Path), StringComparer.OrdinalIgnoreCase);
+        var existingArtists = await db.Artists.ToListAsync(cancellationToken);
+        var artistCache = existingArtists.ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+        var existingAlbums = await db.Albums.Include(a => a.Artist).ToListAsync(cancellationToken);
+        var albumCache = existingAlbums
+            .Where(a => a.Artist != null)
+            .ToDictionary(
+                a => $"{(a.Title ?? "Unknown Album")}|{(a.Artist != null ? a.Artist.Name ?? "Unknown Artist" : "Unknown Artist")}",
+                a => a,
+                StringComparer.OrdinalIgnoreCase
+            );
+
         var newTracks = new List<Track>();
-        var artistCache = new Dictionary<string, Artist>(StringComparer.OrdinalIgnoreCase);
-        var albumCache = new Dictionary<(string Title, string ArtistName), Album>();
 
         foreach (var file in files)
         {
             if (cancellationToken.IsCancellationRequested) break;
 
-            if (await db.Tracks.AnyAsync(t => t.Path == file, cancellationToken)) continue;
+            if (existingTrackPaths.Contains(file)) continue;
 
             var trackData = scanner.ProcessFile(file);
             if (trackData == null || trackData.Album == null || trackData.Album.Artist == null) continue;
@@ -67,33 +78,16 @@ public class Worker(
             var artistName = trackData.Album.Artist.Name ?? "Unknown Artist";
             if (!artistCache.TryGetValue(artistName, out var artist))
             {
-                artist = await db.Artists.FirstOrDefaultAsync(a => a.Name == artistName, cancellationToken);
-                if (artist == null)
-                {
-                    artist = new Artist { Name = artistName };
-                    artistCache[artistName] = artist;
-                }
-                else
-                {
-                    artistCache[artistName] = artist;
-                }
+                artist = new Artist { Name = artistName };
+                artistCache[artistName] = artist;
             }
 
             var albumTitle = trackData.Album.Title ?? "Unknown Album";
-            var albumKey = (albumTitle, artistName);
+            var albumKey = $"{albumTitle}|{artistName}";
             if (!albumCache.TryGetValue(albumKey, out var album))
             {
-                album = await db.Albums.Include(a => a.Artist)
-                    .FirstOrDefaultAsync(a => a.Title == albumTitle && a.Artist != null && a.Artist.Name == artistName, cancellationToken);
-                if (album == null)
-                {
-                    album = new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
-                    albumCache[albumKey] = album;
-                }
-                else
-                {
-                    albumCache[albumKey] = album;
-                }
+                album = new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
+                albumCache[albumKey] = album;
             }
 
             var track = new Track
