@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:marquee/marquee.dart';
 import 'package:rxdart/rxdart.dart';
 import 'services/api_service.dart';
 import 'models/track.dart';
 import 'config.dart';
+import 'widgets/play_controls.dart';
 
 void main() {
   runApp(const MyApp());
@@ -149,89 +149,13 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           if (_currentTrack.title.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  StreamBuilder<PositionData>(
-                    stream: _positionDataStream,
-                    builder: (context, snapshot) {
-                      final positionData = snapshot.data;
-                      final position = positionData?.position ?? Duration.zero;
-                      final duration = positionData?.duration ?? Duration.zero;
-                      return Column(
-                        children: [
-                          Slider(
-                            value: position.inMilliseconds.toDouble().clamp(0.0, duration.inMilliseconds.toDouble()),
-                            max: duration.inMilliseconds.toDouble(),
-                            onChanged: (value) {
-                              _seek(Duration(milliseconds: value.round()));
-                            },
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(_formatDuration(position)),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final text = "${_currentTrack.title} - ${_currentTrack.album?.artist?.name ?? 'Unknown Artist'} - ${_currentTrack.album?.title ?? 'Unknown Album'}";
-                                    const style = TextStyle(fontWeight: FontWeight.bold);
-                                    final span = TextSpan(text: text, style: style);
-                                    final painter = TextPainter(text: span, maxLines: 1, textDirection: TextDirection.ltr);
-                                    painter.layout();
-
-                                    if (painter.width > constraints.maxWidth) {
-                                      return SizedBox(
-                                        height: 20.0,
-                                        child: Marquee(
-                                          text: text,
-                                          style: style,
-                                          scrollAxis: Axis.horizontal,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          blankSpace: 40.0,
-                                          velocity: 10.0,
-                                        ),
-                                      );
-                                    } else {
-                                      return Text(text, style: style, textAlign: TextAlign.center,);
-                                    }
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(_formatDuration(duration)),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      StreamBuilder<bool>(
-                        stream: _player.playingStream,
-                        builder: (context, snapshot) {
-                          final isPlaying = snapshot.data ?? false;
-                          return IconButton(
-                            icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                            iconSize: 64.0,
-                            onPressed: () {
-                              if (isPlaying) {
-                                _pause();
-                              } else {
-                                _player.play();
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            PlayControls(
+              player: _player,
+              currentTrack: _currentTrack,
+              positionDataStream: _positionDataStream,
+              onPause: _pause,
+              onPlay: () => _player.play(),
+              onSeek: _seek,
             ),
         ],
       ),

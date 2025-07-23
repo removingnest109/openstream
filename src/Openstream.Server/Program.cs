@@ -1,6 +1,5 @@
 using Openstream.Server;
 using Openstream.Server.Services;
-using Microsoft.Extensions.Options;
 using Openstream.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
