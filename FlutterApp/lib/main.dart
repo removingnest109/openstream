@@ -35,12 +35,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final AudioPlayer _player = AudioPlayer();
+  final AudioPlayer _player = AudioPlayer(
+    handleInterruptions: true,
+    androidApplyAudioAttributes: true,
+    handleAudioSessionActivation: true,
+  );
   final ApiService _apiService = ApiService();
   late Future<List<Track>> _tracksFuture;
   late Stream<PositionData> _positionDataStream;
   late Track _currentTrack = Track(id: '', title: '', duration: Duration.zero);
-  double _volume = 1.0;
+  final double _volume = 1.0;
 
   @override
   void initState() {
@@ -59,15 +63,31 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _play(Track track) async {
+    debugPrint("Playing track: ${track.title}");
     try {
+      await _player.stop();
       final url = "$baseUrl/api/tracks/${track.id}/stream";
       _currentTrack = track;
-      await _player.setUrl(url);
-      _player.play();
+
+      await _player.setAudioSource(
+        LockCachingAudioSource(
+          Uri.parse(url),
+          headers: {"User-Agent": "Openstream Player"},
+        ),
+      );
+
       setState(() {});
+      _player.play();
     } catch (e) {
       debugPrint("Error loading audio source: $e");
+      _player.setAudioSource(AudioSource.uri(Uri.parse("")));
     }
+  }
+
+  void _refetch() {
+    setState(() {
+      _tracksFuture = _apiService.getTracks();
+    });
   }
 
   void _pause() {
@@ -89,6 +109,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refetch,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -151,7 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
                                     final text = "${_currentTrack.title} - ${_currentTrack.album?.artist?.name ?? 'Unknown Artist'} - ${_currentTrack.album?.title ?? 'Unknown Album'}";
-                                    final style = const TextStyle(fontWeight: FontWeight.bold);
+                                    const style = TextStyle(fontWeight: FontWeight.bold);
                                     final span = TextSpan(text: text, style: style);
                                     final painter = TextPainter(text: span, maxLines: 1, textDirection: TextDirection.ltr);
                                     painter.layout();

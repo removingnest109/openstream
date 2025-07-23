@@ -17,7 +17,7 @@ services:
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
       Ingestion__MusicLibraryPath: "/music"
     ports:
-      - "5000:5000"
+      - "9090:9090"
     volumes:
       - ./music:/music
 
