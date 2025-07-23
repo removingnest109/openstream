@@ -1,22 +1,22 @@
 
 # Openstream
 
-Openstream is a .NET-based music library ingestion and streaming server. It scans your music directory, ingests metadata into a SQL database, and provides a REST API for browsing and streaming your music collection.
+Openstream is a .NET-based music library ingestion and streaming server. It scans a user defined music directory, ingests metadata into a SQL database, and provides a REST API for browsing and streaming your music collection.
 
 ## Features
 - Automatic music library scanning and ingestion
 - REST API for tracks, albums, and artists
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
-- Runs as a background service
+- Lightweight server for resource-constrained machines
 
 ## Requirements
 - Docker Compose
 
 OR
   
-- .NET 8 SDK or newer
+- .NET 8 SDK
 - SQL Server (local or Docker)
-- Bash (for running scripts)
+- Bash (for scripts)
 
 ## Getting Started
 
