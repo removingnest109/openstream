@@ -10,6 +10,10 @@ Openstream is a .NET-based music library ingestion and streaming server. It scan
 - Runs as a background service
 
 ## Requirements
+- Docker Compose
+
+OR
+  
 - .NET 8 SDK or newer
 - SQL Server (local or Docker)
 - Bash (for running scripts)
