@@ -1,24 +1,14 @@
-import 'album.dart';
 
 class Artist {
-  static const className = "Artist";
+  final int id;
+  final String name;
 
-  String id = "";
-  String name = "Unknown Artist";
-  List<Album>? albums;
+  Artist({required this.id, required this.name});
 
-  void initFromJson(Map<String, dynamic>? src) {
-    if (src == null) return;
-    id = src['id'];
-    name = src['name'];
-    albums = src['albums']?.map((e) => Album.fromJson(e)).toList();
+  factory Artist.fromJson(Map<String, dynamic> json) {
+    return Artist(
+      id: json['id'] as int,
+      name: json['name'] as String,
+    );
   }
-
-  static Artist? fromJson(Map<String, dynamic>? src) {
-    if (src == null) return null;
-    var entity = Artist();
-    entity.initFromJson(src);
-    return entity;
-  }
-
 }
