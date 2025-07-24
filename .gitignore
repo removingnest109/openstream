@@ -17,3 +17,5 @@ src/Openstream.Server/obj/
 
 music/
 *.code-workspace
+/web/node_modules
+/web/dist
