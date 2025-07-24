@@ -38,6 +38,8 @@ dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
 # Find the output DLL
 PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
 
+cp -r src/Openstream.Server/wwwroot wwwroot
+
 # Run the published server
 dotnet "$PUBLISH_DIR/Openstream.Server.dll" \
   --ConnectionStrings:DefaultConnection="Server=$SERVER;Database=Openstream;User Id=$USERNAME;Password=$PASSWORD;TrustServerCertificate=True;" \

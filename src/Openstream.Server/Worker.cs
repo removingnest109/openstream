@@ -36,7 +36,6 @@ public class Worker(
 
     private async Task ScanDirectory(string path, MusicDbContext db, MusicScanner scanner, CancellationToken cancellationToken)
     {
-        // Remove tracks whose files no longer exist
         var allTracks = await db.Tracks.ToListAsync(cancellationToken);
         var tracksToRemove = allTracks.Where(t => !System.IO.File.Exists(t.Path)).ToList();
 
@@ -51,18 +50,23 @@ public class Worker(
         var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
             .Where(f => supported.Contains(Path.GetExtension(f).ToLower()));
 
-        // Load all existing track paths, artists, and albums into memory for fast lookup
         var existingTrackPaths = new HashSet<string>(allTracks.Select(t => t.Path), StringComparer.OrdinalIgnoreCase);
         var existingArtists = await db.Artists.ToListAsync(cancellationToken);
-        var artistCache = existingArtists.ToDictionary(a => a.Name, StringComparer.OrdinalIgnoreCase);
+        var artistCache = new Dictionary<string, Artist>(StringComparer.OrdinalIgnoreCase);
+        foreach (var artist in existingArtists)
+        {
+            artistCache[artist.Name ?? "Unknown Artist"] = artist;
+        }
+
         var existingAlbums = await db.Albums.Include(a => a.Artist).ToListAsync(cancellationToken);
-        var albumCache = existingAlbums
-            .Where(a => a.Artist != null)
-            .ToDictionary(
-                a => $"{(a.Title ?? "Unknown Album")}|{(a.Artist != null ? a.Artist.Name ?? "Unknown Artist" : "Unknown Artist")}",
-                a => a,
-                StringComparer.OrdinalIgnoreCase
-            );
+        var albumCache = new Dictionary<string, Album>(StringComparer.OrdinalIgnoreCase);
+        foreach (var album in existingAlbums.Where(a => a.Artist != null))
+        {
+            var artistName = album.Artist?.Name ?? "Unknown Artist";
+            var albumTitle = album.Title ?? "Unknown Album";
+            var key = $"{albumTitle}|{artistName}";
+            albumCache[key] = album;
+        }
 
         var newTracks = new List<Track>();
 
@@ -73,7 +77,7 @@ public class Worker(
             if (existingTrackPaths.Contains(file)) continue;
 
             var trackData = scanner.ProcessFile(file);
-            if (trackData == null || trackData.Album == null || trackData.Album.Artist == null) continue;
+            if (trackData == null || trackData.Album?.Artist == null) continue;
 
             var artistName = trackData.Album.Artist.Name ?? "Unknown Artist";
             if (!artistCache.TryGetValue(artistName, out var artist))
@@ -86,7 +90,12 @@ public class Worker(
             var albumKey = $"{albumTitle}|{artistName}";
             if (!albumCache.TryGetValue(albumKey, out var album))
             {
-                album = new Album { Title = albumTitle, Artist = artist, Year = trackData.Album.Year };
+                album = new Album
+                {
+                    Title = albumTitle,
+                    Artist = artist,
+                    Year = trackData.Album.Year
+                };
                 albumCache[albumKey] = album;
             }
 
@@ -107,12 +116,12 @@ public class Worker(
             logger.LogInformation("Found {Count} new tracks. Saving to database...", newTracks.Count);
             foreach (var artist in artistCache.Values)
             {
-                if (artist.Id == 0 && !db.Artists.Local.Any(a => a.Name == artist.Name))
+                if (artist.Id == 0)
                     db.Artists.Add(artist);
             }
             foreach (var album in albumCache.Values)
             {
-                if (album.Id == 0 && !db.Albums.Local.Any(a => a.Title == album.Title && a.Artist != null && a.Artist.Name == album.Artist?.Name))
+                if (album.Id == 0)
                     db.Albums.Add(album);
             }
             db.Tracks.AddRange(newTracks);

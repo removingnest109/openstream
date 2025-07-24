@@ -21,3 +21,4 @@ music/
 /web/dist
 /web/build
 /wwwroot
+/src/Openstream.Server/wwwroot

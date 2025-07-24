@@ -9,7 +9,7 @@
     <SpaRoot>../../web/</SpaRoot>
 
     <!-- Where to copy the built files -->
-    <SpaDist>../../wwwroot/dist</SpaDist>
+    <SpaDist>wwwroot/dist</SpaDist>
 
     <!-- Prevent node_modules from being scanned -->
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>

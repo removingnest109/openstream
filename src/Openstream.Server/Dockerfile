@@ -2,6 +2,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
+# Install Node.js (LTS version)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    node --version && npm --version
+
 # Copy solution and project files
 COPY ["Openstream.sln", "."]
 COPY ["src/Openstream.Core/*.csproj", "src/Openstream.Core/"]
