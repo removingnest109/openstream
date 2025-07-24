@@ -19,3 +19,5 @@ music/
 *.code-workspace
 /web/node_modules
 /web/dist
+/web/build
+/wwwroot

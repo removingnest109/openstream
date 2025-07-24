@@ -4,18 +4,58 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Path to React app -->
+    <SpaRoot>../../web/</SpaRoot>
+
+    <!-- Where to copy the built files -->
+    <SpaDist>../../wwwroot/dist</SpaDist>
+
+    <!-- Prevent node_modules from being scanned -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-		<PackageReference Include="taglibsharp" Version="2.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+    <PackageReference Include="taglibsharp" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Openstream.Core\Openstream.Core.csproj" />
   </ItemGroup>
+
+  <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build">
+    <!-- Check Node.js is installed -->
+    <Exec Command="node --version" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build the React frontend." />
+  </Target>
+
+  <Target Name="BuildReactApp" AfterTargets="DebugEnsureNodeEnv" DependsOnTargets="CleanSpaDist">
+    <!-- Install and build React app -->
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+  </Target>
+
+  <Target Name="CopyReactApp" AfterTargets="BuildReactApp">
+    <!-- Copy React build output to wwwroot/dist -->
+    <MakeDir Directories="$(SpaDist)" />
+    <ItemGroup>
+      <SpaBuildFiles Include="$(SpaRoot)build\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SpaBuildFiles)" 
+          DestinationFiles="@(SpaBuildFiles->'$(SpaDist)\%(RecursiveDir)%(Filename)%(Extension)')" 
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CleanSpaDist" BeforeTargets="BuildReactApp">
+    <!-- Clean wwwroot/dist before copy -->
+    <RemoveDir Directories="$(SpaDist)" />
+  </Target>
 
 </Project>

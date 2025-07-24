@@ -4,6 +4,7 @@ using Openstream.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,11 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
+// Add SPA static files and proxy
+builder.Services.AddSpaStaticFiles(configuration => {
+    configuration.RootPath = "wwwroot/dist";
+});
+
 // Configure database
 builder.Services.AddDbContext<MusicDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -25,14 +31,13 @@ builder.Services.AddSingleton<MusicScanner>();
 builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
 builder.Services.AddHostedService<Worker>();
 
-// Configure authentication (for future use)
+// Configure authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.Authority = builder.Configuration["Auth:Authority"];
         options.Audience = builder.Configuration["Auth:Audience"];
     });
-
 
 builder.WebHost.UseUrls("http://0.0.0.0:9090");
 var app = builder.Build();
@@ -49,6 +54,23 @@ app.MapGet("/health", () => "Healthy");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+
+app.UseStaticFiles();         // Serve static assets from wwwroot
+app.UseSpaStaticFiles();      // Serve static assets from wwwroot/dist
+
+app.MapControllers();         // Map your API controllers
+app.MapGet("/health", () => "Healthy");
+
+// ⬇️ Fallback to index.html for SPA
+app.UseSpa(spa =>
+{
+    spa.Options.SourcePath = "wwwroot";
+    spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "dist")),
+        RequestPath = ""
+    };
+});
 
 app.Run();
