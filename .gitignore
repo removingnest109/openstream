@@ -16,3 +16,4 @@ src/Openstream.Server/obj/
 .idea/
 
 music/
+*.code-workspace
