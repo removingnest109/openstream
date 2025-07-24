@@ -49,8 +49,6 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.MapGet("/health", () => "Healthy");
-
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

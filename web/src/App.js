@@ -9,7 +9,7 @@ function App() {
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
-        <audio controls src="http://localhost:9090/api/tracks/9903d8f7-2a7a-404d-b0bf-0c7967be6dbd/stream"></audio>
+        <audio controls src="/api/tracks/9903d8f7-2a7a-404d-b0bf-0c7967be6dbd/stream"></audio>
         <a
           className="App-link"
           href="https://reactjs.org"
