@@ -18,17 +18,18 @@ public class TracksController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetTracks([FromQuery] string? search)
     {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var query = _db.Tracks
             .Include(t => t.Album)
             .ThenInclude(a => a.Artist)
             .AsQueryable();
-
         if (!string.IsNullOrEmpty(search))
         {
             query = query.Where(t => 
                 t.Title.Contains(search) ||
                 t.Album.Title.Contains(search) ||
                 t.Album.Artist.Name.Contains(search));
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
         return Ok(await query.ToListAsync());
