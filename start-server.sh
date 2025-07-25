@@ -38,7 +38,10 @@ dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
 # Find the output DLL
 PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
 
-cp -r src/Openstream.Server/wwwroot wwwroot
+if [ ! -d "wwwroot/" ]; then
+  mkdir wwwroot/
+fi
+cp -r src/Openstream.Server/wwwroot/* wwwroot/
 
 # Run the published server
 dotnet "$PUBLISH_DIR/Openstream.Server.dll" \
