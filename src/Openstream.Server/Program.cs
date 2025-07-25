@@ -29,6 +29,7 @@ builder.Services.AddDbContext<MusicDbContext>(options =>
 // Register ingestion background service
 builder.Services.AddSingleton<MusicScanner>();
 builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
+builder.Services.AddSingleton<MusicIngestionService>();
 builder.Services.AddHostedService<Worker>();
 
 // Configure authentication
