@@ -1,3 +1,110 @@
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: fixed;
+  top: 32px;
+  left: 20px;
+  z-index: 100;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px #000a;
+  transition: left 0.2s, top 0.2s;
+}
+/* Neutral button for settings (not accented) */
+.settings-neutral-button {
+  flex: 2;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+  font-weight: 500;
+}
+.settings-neutral-button:hover {
+  background: #333;
+  border-color: var(--primary-color);
+}
+/* Modern Settings UI */
+.settings-form {
+  background: #181818;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  margin: 2rem auto;
+  max-width: 480px;
+  box-shadow: 0 2px 8px #000a;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.settings-label {
+  flex: 1;
+  color: #ccc;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: right;
+  margin-right: 1rem;
+}
+
+.settings-select {
+  flex: 2;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: border 0.2s;
+  outline: none;
+}
+.settings-select:focus {
+  border-color: var(--primary-color);
+}
+
+.settings-file-group {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.settings-file {
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.settings-button {
+  flex: 2;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+.settings-button:hover {
+  background: color-mix(in srgb, var(--primary-color) 70%, #222);
+}
+:root {
+  --primary-color: #e5e743;
+  --primary-color-33: color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
 /* Global Reset & Base Styles */
 body, html, #root {
   margin: 0;
@@ -36,7 +143,7 @@ body, html, #root {
 .app-title {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #1db954;
+  color: var(--primary-color);
   flex: 1;
   text-align: center;
 }
@@ -61,10 +168,6 @@ body, html, #root {
   background-color: #1a1a1a;
 }
 
-.track-item.active {
-  background-color: #1db95433;
-}
-
 .track-icon {
   font-size: 1.2rem;
 }
@@ -79,7 +182,7 @@ body, html, #root {
 
 /* Sticky Player Bar */
 .player-bar {
-  height: 80px;
+  min-height: 80px;
   background-color: #181818;
   border-top: 1px solid #282828;
   display: flex;
@@ -87,6 +190,27 @@ body, html, #root {
   justify-content: center;
   padding: 0 1rem;
 }
+
+@media (max-width: 600px) {
+  .player-bar {
+    min-height: auto;
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem 0.5rem;
+    gap: 0.5rem;
+  }
+  .player-controls {
+    gap: 1rem;
+  }
+  .track-list,
+  .album-list,
+  .artist-list,
+  .playlist-list {
+    padding-bottom: 100px;
+  }
+}
+
 
 .audio-player {
   width: 100%;
@@ -122,7 +246,7 @@ body, html, #root {
 }
 
 .track-item.active {
-  background-color: #1db95433;
+  background-color: var(--primary-color-33);
 }
 
 /* Three-column layout */
@@ -181,7 +305,7 @@ body, html, #root {
 }
 
 .player-controls button:hover {
-  color: #1db954;
+  color: var(--primary-color);
 }
 
 .player-controls button:focus {
@@ -189,11 +313,11 @@ body, html, #root {
 }
 
 .player-controls .shuffle.active {
-  color: #1db954;
+  color: var(--primary-color);
 }
 
 .player-controls .loop.active {
-  color: #1db954;
+  color: var(--primary-color);
 }
 
 .seek-bar {
@@ -206,7 +330,7 @@ body, html, #root {
 
 .seek-bar input[type="range"] {
   flex: 1;
-  accent-color: #1db954;
+  accent-color: var(--primary-color);
 }
 
 .time {
@@ -226,7 +350,7 @@ body, html, #root {
 }
 
 .volume-control input[type="range"] {
-  accent-color: #1db954;
+  accent-color: var(--primary-color);
 }
 
 .mute-button {
@@ -241,7 +365,7 @@ body, html, #root {
 }
 
 .mute-button:hover {
-  color: #1db954;
+  color: var(--primary-color);
 }
 
 .track-info {
@@ -287,23 +411,27 @@ body, html, #root {
   gap: 1rem;
 }
 
-.nav-title {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
 .nav-button {
-  background: none;
-  border: none;
-  color: white;
+  background: #222;
+  border: 1px solid #333;
+  color: #fff;
   text-align: left;
-  padding: 0.5rem 0;
+  padding: 0.5rem 1rem;
   cursor: pointer;
   font-size: 1rem;
-  opacity: 0.7;
-  transition: opacity 0.2s, font-weight 0.2s;
+  opacity: 0.85;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s, border 0.2s, opacity 0.2s, font-weight 0.2s;
 }
+.nav-button:hover,
+.nav-button.active {
+  opacity: 1;
+  font-weight: bold;
+  background: color-mix(in srgb, var(--primary-color) 20%, #222);
+  border-color: var(--primary-color);
+}
+
 
 .nav-button:hover,
 .nav-button.active {
@@ -384,7 +512,7 @@ body, html, #root {
 }
 
 .create-playlist-form h2 {
-  color: #1db954;
+  color: var(--primary-color);
   margin-bottom: 0.5rem;
   text-align: center;
 }
@@ -412,12 +540,12 @@ body, html, #root {
 }
 
 .create-playlist-form input[type="checkbox"] {
-  accent-color: #1db954;
+  accent-color: var(--primary-color);
   margin-right: 0.5rem;
 }
 
 .create-playlist-form button[type="submit"] {
-  background: #1db954;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -434,6 +562,80 @@ body, html, #root {
   cursor: not-allowed;
 }
 
+/* Modern Track Checkbox List for Playlist Creation */
+.create-playlist-form .track-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.create-playlist-form .track-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #222;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.create-playlist-form .track-checkbox-item:hover {
+  background: #1a1a1a;
+}
+
+.create-playlist-form .track-checkbox-item input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1db954;
+  border-radius: 6px;
+  background: #181818;
+  transition: background 0.2s, border 0.2s;
+  position: relative;
+  cursor: pointer;
+}
+
+.create-playlist-form .track-checkbox-item input[type="checkbox"]:checked {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.create-playlist-form .track-checkbox-item input[type="checkbox"]:checked::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+.create-playlist-form .track-checkbox-title {
+  font-weight: 500;
+  color: #fff;
+  flex: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-playlist-form .track-checkbox-meta {
+  color: #aaa;
+  font-size: 0.95rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Playlist List Tiles */
 .playlist-list {
   flex: 1;
@@ -447,12 +649,12 @@ body, html, #root {
 
 .playlist-list .tile {
   background-color: #222;
-  border: 2px solid #1db95433;
+  border: 2px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
   transition: border 0.2s, background 0.2s;
 }
 
 .playlist-list .tile:hover {
-  border: 2px solid #1db954;
+  border: 2px solid var(--primary-color);
   background-color: #1a1a1a;
 }
 
@@ -463,7 +665,7 @@ body, html, #root {
 }
 
 .playlist-list .tile-subtitle {
-  color: #1db954;
+  color: var(--primary-color);
   font-size: 0.95rem;
   margin-top: 0.25rem;
 }

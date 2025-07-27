@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaRandom, FaRedo, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaRandom, FaRedo, FaVolumeUp, FaVolumeMute, FaMusic, FaCompactDisc, FaUser, FaListUl, FaCog } from 'react-icons/fa';
 import './App.css';
 
+
 function App() {
+  // Simple mobile detection
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
   const [tracks, setTracks] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
@@ -19,6 +22,13 @@ function App() {
   const [view, setView] = useState('library'); // 'library' | 'albums' | 'artists'
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [primaryColor, setPrimaryColor] = useState(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#e5e743');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Update CSS variable when primaryColor changes
+  useEffect(() => {
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+  }, [primaryColor]);
 
   const audioRef = useRef(null);
   const shuffleHistory = useRef([]);
@@ -151,66 +161,96 @@ function App() {
   const currentTrack = tracks[currentTrackIndex];
 
   return (
-    <div className="app-container">
-      <div className="app-layout">
-        <div className="side-nav">
-          <h2 className="nav-title">Browse</h2>
-          <button
-            className={view === 'library' ? 'nav-button active' : 'nav-button'}
-            onClick={() => {
-              setSelectedAlbum(null);
-              setSelectedArtist(null);
-              setSelectedPlaylist(null);
-              setView('library');
-            }}
-          >
-            Library
-          </button>
-          <button
-            className={view === 'albums' ? 'nav-button active' : 'nav-button'}
-            onClick={() => {
-              setSelectedAlbum(null);
-              setSelectedArtist(null);
-              setSelectedPlaylist(null);
-              setView('albums');
-            }}
-          >
-            Albums
-          </button>
-          <button
-            className={view === 'artists' ? 'nav-button active' : 'nav-button'}
-            onClick={() => {
-              setSelectedAlbum(null);
-              setSelectedArtist(null);
-              setSelectedPlaylist(null);
-              setView('artists');
-            }}
-          >
-            Artists
-          </button>
-          <button
-            className={view === 'playlists' ? 'nav-button active' : 'nav-button'}
-            onClick={() => {
-              setSelectedAlbum(null);
-              setSelectedArtist(null);
-              setView('playlists');
-            }}
-          >
-            Playlists
-          </button>
-          <button
-            className={view === 'settings' ? 'nav-button active' : 'nav-button'}
-            onClick={() => {
-              setView('settings');
-            }}
-          >
-            Settings
-          </button>
-        </div>
-
+    <div className="app-container" style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <button
+        className={`sidebar-toggle nav-button${sidebarOpen ? '' : ''}`}
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+        style={{
+          position: 'fixed',
+          top: 32,
+          left: sidebarOpen ? 20 : 16,
+          zIndex: 100,
+          width: 36,
+          height: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          transition: 'left 0.2s, top 0.2s',
+        }}
+      >
+        <FaListUl size={20} />
+      </button>
+      <div className="app-layout" style={{ marginLeft: sidebarOpen ? 80 : 0, transition: 'margin-left 0.2s', flex: 1, overflow: 'auto', paddingBottom: 80, boxSizing: 'border-box' }}>
+        {sidebarOpen && (
+          <div className="side-nav" style={{ paddingTop: 80 }}>
+            <button
+              className={view === 'library' ? 'nav-button active' : 'nav-button'}
+              onClick={() => {
+                setSelectedAlbum(null);
+                setSelectedArtist(null);
+                setSelectedPlaylist(null);
+                setView('library');
+                setSidebarOpen(false);
+              }}
+              title="Library"
+            >
+              <FaMusic size={24} />
+            </button>
+            <button
+              className={view === 'albums' ? 'nav-button active' : 'nav-button'}
+              onClick={() => {
+                setSelectedAlbum(null);
+                setSelectedArtist(null);
+                setSelectedPlaylist(null);
+                setView('albums');
+                setSidebarOpen(false);
+              }}
+              title="Albums"
+            >
+              <FaCompactDisc size={24} />
+            </button>
+            <button
+              className={view === 'artists' ? 'nav-button active' : 'nav-button'}
+              onClick={() => {
+                setSelectedAlbum(null);
+                setSelectedArtist(null);
+                setSelectedPlaylist(null);
+                setView('artists');
+                setSidebarOpen(false);
+              }}
+              title="Artists"
+            >
+              <FaUser size={24} />
+            </button>
+            <button
+              className={view === 'playlists' ? 'nav-button active' : 'nav-button'}
+              onClick={() => {
+                setSelectedAlbum(null);
+                setSelectedArtist(null);
+                setView('playlists');
+                setSidebarOpen(false);
+              }}
+              title="Playlists"
+            >
+              <FaListUl size={24} />
+            </button>
+            <button
+              className={view === 'settings' ? 'nav-button active' : 'nav-button'}
+              onClick={() => {
+                setView('settings');
+                setSidebarOpen(false);
+              }}
+              title="Settings"
+            >
+              <FaCog size={24} />
+            </button>
+          </div>
+        )}
         {/* LIBRARY VIEW */}
         {view === 'library' && (
-          <div className="track-list">
+          <div className="track-list" style={{ overflow: 'visible', maxHeight: 'none' }}>
             <h1 className="app-title">
               {selectedPlaylist
                 ? `Playlist: ${selectedPlaylist.name}`
@@ -328,107 +368,165 @@ function App() {
         {view === 'settings' && (
           <div className="settings">
             <h1 className="app-title">Settings</h1>
-            <div className="setting-item">
-              <label htmlFor="rescan">Rescan Library</label>
-              <button
-                id="rescan"
-                onClick={() => {
-                  fetch('/api/ingestion/scan', { method: 'POST' })
-                    .then(res => {
-                      if (res.ok) {
-                        alert('Library rescan started');
-                      } else {
-                        alert('Failed to start rescan');
-                      }
-                    })
-                    .catch(err => console.error('Failed to start rescan:', err));
-                }}
-              >
-                Rescan
-              </button>
-            </div>
-            <div className="setting-item">
-              <label htmlFor="upload">Upload Tracks</label>
-              <input
-                id="upload"
-                type="file"
-                accept="audio/*"
-                onChange={handleFileUpload}
-              />
-            </div>
+            <form className="settings-form" onSubmit={e => e.preventDefault()}>
+              <div className="settings-row">
+                <label htmlFor="primary-color-select" className="settings-label">Accent Color</label>
+                <select
+                  id="primary-color-select"
+                  value={primaryColor}
+                  onChange={e => setPrimaryColor(e.target.value)}
+                  className="settings-select"
+                >
+                  <option value="#e5e743">Yellow (#e5e743)</option>
+                  <option value="#1db954">Green (#1db954)</option>
+                  <option value="#3fa7d6">Blue (#3fa7d6)</option>
+                  <option value="#ff4f81">Pink (#ff4f81)</option>
+                  <option value="#ff9800">Orange (#ff9800)</option>
+                  <option value="#a259a2">Purple (#a259a2)</option>
+                  <option value="#fff">White (#fff)</option>
+                  <option value="#ff0000">Red (#ff0000)</option>
+                </select>
+              </div>
+              <div className="settings-row">
+                <label htmlFor="upload" className="settings-label">Upload Tracks</label>
+                <div className="settings-file-group">
+                  <input
+                    id="upload"
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleFileUpload}
+                    className="settings-file"
+                  />
+                </div>
+              </div>
+              <div className="settings-row">
+                <label htmlFor="rescan" className="settings-label">Rescan Library</label>
+                <button
+                  id="rescan"
+                  type="button"
+                  className="settings-neutral-button"
+                  onClick={() => {
+                    fetch('/api/ingestion/scan', { method: 'POST' })
+                      .then(res => {
+                        if (res.ok) {
+                          alert('Library rescan started');
+                        } else {
+                          alert('Failed to start rescan');
+                        }
+                      })
+                      .catch(err => console.error('Failed to start rescan:', err));
+                  }}
+                >
+                  Rescan
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
       </div>
 
-      <footer className="player-bar">
-        {currentTrack ? (
-          <>
-            <audio
-              ref={audioRef}
-              loop={loop}
-              src={`/api/tracks/${currentTrack.id}/stream`}
-              onTimeUpdate={() => setCurrentTime(audioRef.current.currentTime)}
-              onLoadedMetadata={() => setDuration(audioRef.current.duration)}
-              onEnded={nextTrack}
-            />
-
-            <div className="track-info">
-              <div className="title">{currentTrack.title || currentTrack.id}</div>
-              <div className="meta">
-                {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+      {currentTrack && (
+        <footer className="player-bar" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 101 }}>
+          <audio
+            ref={audioRef}
+            loop={loop}
+            src={`/api/tracks/${currentTrack.id}/stream`}
+            onTimeUpdate={() => setCurrentTime(audioRef.current.currentTime)}
+            onLoadedMetadata={() => setDuration(audioRef.current.duration)}
+            onEnded={nextTrack}
+          />
+          {isMobile ? (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8, width: '100%' }}>
+                <div className="title" style={{ fontWeight: 'bold', fontSize: 18, textAlign: 'center', marginBottom: 2 }}>
+                  {currentTrack.title || currentTrack.id}
+                </div>
+                <div className="meta" style={{ fontSize: 14, color: '#888', textAlign: 'center' }}>
+                  {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+                </div>
               </div>
-            </div>
-
-            <div className="player-controls">
-              <button className={`shuffle ${shuffle ? 'active' : ''}`} onClick={toggleShuffle}>
-                <FaRandom />
-              </button>
-              <button onClick={prevTrack}><FaStepBackward /></button>
-              <button onClick={() => setIsPlaying(!isPlaying)}>
-                {isPlaying ? <FaPause /> : <FaPlay />}
-              </button>
-              <button onClick={nextTrack}><FaStepForward /></button>
-              <button className={`loop ${loop ? 'active' : ''}`} onClick={() => setLoop(!loop)}>
-                <FaRedo />
-              </button>
-            </div>
-
-            <div className="seek-bar">
-              <span className="time">{formatTime(currentTime)}</span>
-              <input
-                type="range"
-                min={0}
-                max={duration || 0}
-                value={currentTime}
-                step={0.1}
-                onChange={handleSeek}
-              />
-              <span className="time">{formatTime(duration)}</span>
-            </div>
-
-            <div className="volume-control">
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="mute-button"
-                title={isMuted ? 'Unmute' : 'Mute'}
-              >
-                {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={(e) => setVolume(parseFloat(e.target.value))}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="player-placeholder">Select a track to play</div>
-        )}
-      </footer>
+              <div className="player-controls" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <button className={`shuffle ${shuffle ? 'active' : ''}`} onClick={toggleShuffle}>
+                  <FaRandom />
+                </button>
+                <button onClick={prevTrack}><FaStepBackward /></button>
+                <button onClick={() => setIsPlaying(!isPlaying)} style={{ margin: '0 16px' }}>
+                  {isPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+                <button onClick={nextTrack}><FaStepForward /></button>
+                <button className={`loop ${loop ? 'active' : ''}`} onClick={() => setLoop(!loop)}>
+                  <FaRedo />
+                </button>
+              </div>
+              <div className="seek-bar">
+                <span className="time">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  value={currentTime}
+                  step={0.1}
+                  onChange={handleSeek}
+                />
+                <span className="time">{formatTime(duration)}</span>
+              </div>
+              {/* Volume control hidden on mobile */}
+            </>
+          ) : (
+            <>
+              <div className="track-info">
+                <div className="title">{currentTrack.title || currentTrack.id}</div>
+                <div className="meta">
+                  {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+                </div>
+              </div>
+              <div className="player-controls">
+                <button className={`shuffle ${shuffle ? 'active' : ''}`} onClick={toggleShuffle}>
+                  <FaRandom />
+                </button>
+                <button onClick={prevTrack}><FaStepBackward /></button>
+                <button onClick={() => setIsPlaying(!isPlaying)}>
+                  {isPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+                <button onClick={nextTrack}><FaStepForward /></button>
+                <button className={`loop ${loop ? 'active' : ''}`} onClick={() => setLoop(!loop)}>
+                  <FaRedo />
+                </button>
+              </div>
+              <div className="seek-bar">
+                <span className="time">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  value={currentTime}
+                  step={0.1}
+                  onChange={handleSeek}
+                />
+                <span className="time">{formatTime(duration)}</span>
+              </div>
+              <div className="volume-control">
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="mute-button"
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                />
+              </div>
+            </>
+          )}
+        </footer>
+      )}
     </div>
   );
 }
@@ -469,9 +567,9 @@ function CreatePlaylistForm({ tracks, onCreated }) {
         required
         disabled={submitting}
       />
-      <div style={{ maxHeight: 200, overflowY: "auto", margin: "8px 0" }}>
+      <div className="track-checkbox-list">
         {tracks.map(track => (
-          <label key={track.id} style={{ display: "block" }}>
+          <label key={track.id} className="track-checkbox-item">
             <input
               type="checkbox"
               checked={selectedTrackIds.includes(track.id)}
@@ -484,7 +582,8 @@ function CreatePlaylistForm({ tracks, onCreated }) {
               }}
               disabled={submitting}
             />
-            {track.title} — {track.album?.artist?.name || "Unknown Artist"}
+            <span className="track-checkbox-title">{track.title || track.id}</span>
+            <span className="track-checkbox-meta">{track.album?.artist?.name || "Unknown Artist"}</span>
           </label>
         ))}
       </div>
