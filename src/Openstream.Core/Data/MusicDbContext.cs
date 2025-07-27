@@ -10,6 +10,7 @@ public class MusicDbContext : DbContext
     public DbSet<Track> Tracks => Set<Track>();
     public DbSet<Album> Albums => Set<Album>();
     public DbSet<Artist> Artists => Set<Artist>();
+    public DbSet<Playlist> Playlists => Set<Playlist>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,5 +27,10 @@ public class MusicDbContext : DbContext
             .HasConversion(
                 v => v.Ticks,
                 v => TimeSpan.FromTicks(v));
+
+        // Playlist-Track many-to-many
+        modelBuilder.Entity<Playlist>()
+            .HasMany(p => p.Tracks)
+            .WithMany();
     }
 }

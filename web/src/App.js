@@ -4,6 +4,8 @@ import './App.css';
 
 function App() {
   const [tracks, setTracks] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [shuffle, setShuffle] = useState(false);
@@ -26,6 +28,10 @@ function App() {
       .then(res => res.json())
       .then(setTracks)
       .catch(err => console.error('Failed to load tracks:', err));
+    fetch('/api/playlists')
+      .then(res => res.json())
+      .then(setPlaylists)
+      .catch(err => console.error('Failed to load playlists:', err));
   }, []);
 
   useEffect(() => {
@@ -121,7 +127,7 @@ function App() {
         if (res.ok) {
           alert('Tracks uploaded successfully');
           return res.json();
-        } else {        throw new Error('Failed to upload tracks'); }
+        } else { throw new Error('Failed to upload tracks'); }
       })
       .then(() => {
         fetch('/api/tracks')
@@ -154,6 +160,7 @@ function App() {
             onClick={() => {
               setSelectedAlbum(null);
               setSelectedArtist(null);
+              setSelectedPlaylist(null);
               setView('library');
             }}
           >
@@ -164,6 +171,7 @@ function App() {
             onClick={() => {
               setSelectedAlbum(null);
               setSelectedArtist(null);
+              setSelectedPlaylist(null);
               setView('albums');
             }}
           >
@@ -174,10 +182,21 @@ function App() {
             onClick={() => {
               setSelectedAlbum(null);
               setSelectedArtist(null);
+              setSelectedPlaylist(null);
               setView('artists');
             }}
           >
             Artists
+          </button>
+          <button
+            className={view === 'playlists' ? 'nav-button active' : 'nav-button'}
+            onClick={() => {
+              setSelectedAlbum(null);
+              setSelectedArtist(null);
+              setView('playlists');
+            }}
+          >
+            Playlists
           </button>
           <button
             className={view === 'settings' ? 'nav-button active' : 'nav-button'}
@@ -193,11 +212,13 @@ function App() {
         {view === 'library' && (
           <div className="track-list">
             <h1 className="app-title">
-              {selectedAlbum
-                ? `Album: ${selectedAlbum.title}`
-                : selectedArtist
-                  ? `Tracks by ${selectedArtist.name}`
-                  : 'Your Library'}
+              {selectedPlaylist
+                ? `Playlist: ${selectedPlaylist.name}`
+                : selectedAlbum
+                  ? `Album: ${selectedAlbum.title}`
+                  : selectedArtist
+                    ? `Tracks by ${selectedArtist.name}`
+                    : 'Your Library'}
             </h1>
             <div className="track-header">
               <div className="col-title">Title</div>
@@ -205,7 +226,7 @@ function App() {
               <div className="col-album">Album</div>
             </div>
 
-            {tracks
+            {(selectedPlaylist ? selectedPlaylist.tracks : tracks)
               .filter(track => {
                 if (selectedAlbum) return track.album?.id === selectedAlbum.id;
                 if (selectedArtist) return track.album?.artist?.id === selectedArtist.id;
@@ -225,6 +246,35 @@ function App() {
                   </div>
                 )
               })}
+          </div>
+        )}
+
+        {/* PLAYLISTS VIEW */}
+        {view === 'playlists' && (
+          <div className="playlist-list">
+            <h1 className="app-title">Playlists</h1>
+            <div className="tile-grid">
+              {playlists.map(playlist => (
+                <div
+                  key={playlist.id}
+                  className="tile"
+                  onClick={async () => {
+                    const res = await fetch(`/api/playlists/${playlist.id}`);
+                    const data = await res.json();
+                    setSelectedPlaylist(data);
+                    setView('library');
+                  }}
+                >
+                  <div className="tile-title">{playlist.name}</div>
+                  <div className="tile-subtitle">{playlist.tracks.length} tracks</div>
+                </div>
+              ))}
+            </div>
+            <CreatePlaylistForm tracks={tracks} onCreated={async () => {
+              const res = await fetch('/api/playlists');
+              const data = await res.json();
+              setPlaylists(data);
+            }} />
           </div>
         )}
 
@@ -279,7 +329,7 @@ function App() {
           <div className="settings">
             <h1 className="app-title">Settings</h1>
             <div className="setting-item">
-              <label htmlFor ="rescan">Rescan Library</label>
+              <label htmlFor="rescan">Rescan Library</label>
               <button
                 id="rescan"
                 onClick={() => {
@@ -380,6 +430,66 @@ function App() {
         )}
       </footer>
     </div>
+  );
+}
+
+function CreatePlaylistForm({ tracks, onCreated }) {
+  const [name, setName] = useState("");
+  const [selectedTrackIds, setSelectedTrackIds] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/playlists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, trackIds: selectedTrackIds })
+      });
+      if (!res.ok) throw new Error("Failed to create playlist");
+      setName("");
+      setSelectedTrackIds([]);
+      if (onCreated) await onCreated();
+    } catch (err) {
+      alert("Error creating playlist");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form className="create-playlist-form" onSubmit={handleSubmit} style={{ marginTop: 32 }}>
+      <h2>Create Playlist</h2>
+      <input
+        type="text"
+        placeholder="Playlist name"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        required
+        disabled={submitting}
+      />
+      <div style={{ maxHeight: 200, overflowY: "auto", margin: "8px 0" }}>
+        {tracks.map(track => (
+          <label key={track.id} style={{ display: "block" }}>
+            <input
+              type="checkbox"
+              checked={selectedTrackIds.includes(track.id)}
+              onChange={e => {
+                if (e.target.checked) {
+                  setSelectedTrackIds([...selectedTrackIds, track.id]);
+                } else {
+                  setSelectedTrackIds(selectedTrackIds.filter(id => id !== track.id));
+                }
+              }}
+              disabled={submitting}
+            />
+            {track.title} — {track.album?.artist?.name || "Unknown Artist"}
+          </label>
+        ))}
+      </div>
+      <button type="submit" disabled={submitting || !name || selectedTrackIds.length === 0}>Create</button>
+    </form>
   );
 }
 
