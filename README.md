@@ -29,7 +29,7 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - spotdl (for spotify downloads) - OPTIONAL
   - Python (required only if using spotdl)
 
-OR 
+OR
 
 - Docker
 - SQL Server (local or Docker)
@@ -37,8 +37,6 @@ OR
 OR
 
 - Docker Compose (Includes all dependencies by default)
-
-
 
 ## Getting Started
 
