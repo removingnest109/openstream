@@ -32,7 +32,7 @@ OR
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/openstream.git
+git clone https://github.com/removingnest109/openstream.git
 cd openstream
 ```
 
