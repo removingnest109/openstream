@@ -46,6 +46,3 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Image digest
-        run: echo "Image digest: ${{ steps.build-and-push.outputs.digest }}"
