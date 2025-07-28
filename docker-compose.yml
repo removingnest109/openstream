@@ -10,9 +10,7 @@ services:
       - sql-data:/var/opt/mssql
 
   openstream-server:
-    build:
-      context: .
-      dockerfile: src/Openstream.Server/Dockerfile
+    image: removingnest109/openstream:latest
     environment:
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
       Ingestion__MusicLibraryPath: "/music"
