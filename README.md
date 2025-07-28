@@ -83,5 +83,10 @@ This will start both the SQL Server and the Openstream server.
 ## Customization
 You can change the music library path and database connection via command-line arguments or environment variables.
 
+To run Openstream without serving the frontend use:
+```bash
+./start-server.sh --no-frontend
+```
+
 ## License
 MIT
