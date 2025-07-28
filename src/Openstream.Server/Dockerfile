@@ -18,6 +18,14 @@ RUN dotnet restore "Openstream.sln"
 # Copy all source files
 COPY . .
 
+# Build React frontend and copy to wwwroot/dist
+WORKDIR /src/web
+RUN npm install && npm run build
+WORKDIR /src
+RUN rm -rf src/Openstream.Server/wwwroot/dist && \
+    mkdir -p src/Openstream.Server/wwwroot/dist && \
+    cp -r web/build/* src/Openstream.Server/wwwroot/dist/
+
 # Build and publish the API
 WORKDIR "/src/src/Openstream.Server"
 RUN dotnet publish -c Release -o /app/publish \
@@ -29,7 +37,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y libtag1-dev curl gnupg && \
+    apt-get install -y libtag1-dev curl gnupg ffmpeg yt-dlp python3 python3-pip && \
     # Download and install Microsoft GPG key
     curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-archive-keyring.gpg && \
     # Add repository with proper signed-by
@@ -39,6 +47,16 @@ RUN apt-get update && \
     # Cleanup
     apt-get purge -y --auto-remove curl gnupg && \
     rm -rf /var/lib/apt/lists/*
+
+
+# Install python3-venv and set up spotdl in a virtual environment
+RUN apt-get update && \
+    apt-get install -y python3-venv && \
+    python3 -m venv /opt/spotdl-venv && \
+    /opt/spotdl-venv/bin/pip install --upgrade pip && \
+    /opt/spotdl-venv/bin/pip install spotdl && \
+    rm -rf /var/lib/apt/lists/*
+ENV PATH="/opt/spotdl-venv/bin:$PATH"
 
 # Copy wait script
 COPY wait-for-sql.sh /app/

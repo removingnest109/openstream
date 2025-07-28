@@ -32,21 +32,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-
-# Publish the server
-if [ "$NO_FRONTEND" = true ]; then
-  dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release /p:NoFrontend=true
-else
-  dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
-fi
-
-# Find the output DLL
-PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
-
-
-
-# Only copy frontend if not skipped; otherwise, clear old frontend files but keep dist dir
+# Clean up old frontend build artifacts before copying new ones
 if [ "$NO_FRONTEND" != true ]; then
+  # Remove old dist directory to avoid stale files
+  if [ -d "src/Openstream.Server/wwwroot/dist" ]; then
+    rm -rf src/Openstream.Server/wwwroot/dist
+  fi
+  # Copy new frontend build
   if [ ! -d "wwwroot/" ]; then
     mkdir wwwroot/
   fi
@@ -59,6 +51,16 @@ else
     rm -rf wwwroot/dist/*
   fi
 fi
+
+# Publish the server
+if [ "$NO_FRONTEND" = true ]; then
+  dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release /p:NoFrontend=true
+else
+  dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
+fi
+
+# Find the output DLL
+PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
 
 # Run the published server
 dotnet "$PUBLISH_DIR/Openstream.Server.dll" \

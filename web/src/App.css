@@ -31,7 +31,8 @@
   border-radius: 12px;
   padding: 2rem 2.5rem;
   margin: 2rem auto;
-  max-width: 480px;
+  width: 80%;
+  max-width: none;
   box-shadow: 0 2px 8px #000a;
   display: flex;
   flex-direction: column;
@@ -41,21 +42,25 @@
 .settings-row {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  width: 100%;
+  gap: 0;
   margin-bottom: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #222;
 }
 
 .settings-label {
-  flex: 1;
+  flex: 1 1 0;
   color: #ccc;
   font-size: 1rem;
   font-weight: 500;
-  text-align: right;
-  margin-right: 1rem;
+  text-align: left;
+  margin-right: 2rem;
+  padding-left: 1.5rem;
 }
 
 .settings-select {
-  flex: 2;
+  flex: 2 1 0;
   background: #222;
   color: #fff;
   border: 1px solid #333;
@@ -64,16 +69,18 @@
   font-size: 1rem;
   transition: border 0.2s;
   outline: none;
+  margin-left: auto;
 }
 .settings-select:focus {
   border-color: var(--primary-color);
 }
 
 .settings-file-group {
-  flex: 2;
+  flex: 2 1 0;
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
 }
 .settings-file {
   background: #222;
@@ -83,11 +90,12 @@
   padding: 0.5rem 1rem;
   font-size: 1rem;
   width: 100%;
+  margin-left: auto;
 }
 
 .settings-button {
-  flex: 2;
-  background: var(--primary-color);
+  flex: 2 1 0;
+  background: #222;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -96,6 +104,7 @@
   cursor: pointer;
   transition: background 0.2s;
   font-weight: 500;
+  margin-left: auto;
 }
 .settings-button:hover {
   background: color-mix(in srgb, var(--primary-color) 70%, #222);

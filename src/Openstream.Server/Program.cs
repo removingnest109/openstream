@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,11 +27,20 @@ builder.Services.AddSpaStaticFiles(configuration => {
 builder.Services.AddDbContext<MusicDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
 // Register ingestion background service
 builder.Services.AddSingleton<MusicScanner>();
 builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
 builder.Services.AddSingleton<MusicIngestionService>();
 builder.Services.AddHostedService<Worker>();
+
+// Register downloader service with music library path from config
+builder.Services.AddSingleton<ExternalDownloaderService>(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<IngestionConfig>>().Value;
+    var logger = sp.GetRequiredService<ILogger<ExternalDownloaderService>>();
+    return new ExternalDownloaderService(logger, config.MusicLibraryPath);
+});
 
 // Configure authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
