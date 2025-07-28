@@ -67,8 +67,13 @@ RUN mkdir -p /app/music && chmod 777 /app/music
 # Copy published files
 COPY --from=build /app/publish .
 
-# Set non-root user
-RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+
+# Set non-root user with configurable UID/GID for volume compatibility
+ARG APP_UID=1000
+ARG APP_GID=1000
+RUN groupadd -g $APP_GID appuser && \
+    useradd -u $APP_UID -g $APP_GID --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 # Set entrypoint to use wait script

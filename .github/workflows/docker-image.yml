@@ -37,6 +37,9 @@ jobs:
           context: .
           file: src/Openstream.Server/Dockerfile
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          build-args: |
+            APP_UID=${{ runner.uid }}
+            APP_GID=${{ runner.gid }}
           tags: |
             ${{ steps.meta.outputs.tags }}
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/openstream:latest
