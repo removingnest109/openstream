@@ -1,7 +1,7 @@
 # Openstream
 
 ![Build Status](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)
-![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream?style=flat-square)
+![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 Openstream is a self-hosted music library and streaming server. It scans a user defined music directory, ingests metadata into a SQL database, and provides a REST API and Web UI for browsing and streaming your music collection.
