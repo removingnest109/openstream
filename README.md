@@ -33,15 +33,6 @@ OR
 - spotdl (for spotify downloads) - OPTIONAL
   - Python (required only if using spotdl)
 
-git clone <https://github.com/removingnest109/openstream.git>
-cd openstream
-yt-dlp and spotdl are optional, but are required in order for the automatic link downloader to work for the respective links.
-sudo apt install yt-dlp
-
-pip3 install spotdl
-./start-server.sh
-docker-compose up
-
 ## Getting Started
 
 ### 1. Clone the Repository
