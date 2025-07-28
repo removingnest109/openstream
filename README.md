@@ -22,16 +22,23 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 
 ## Requirements
 
-- Docker Compose (Includes all dependencies by default)
-
-OR
-
 - .NET 8 SDK - REQUIRED
 - SQL Server (local or Docker) - REQUIRED
 - Bash (for scripts) - REQUIRED
 - yt-dlp (for youtube downloads) - OPTIONAL
 - spotdl (for spotify downloads) - OPTIONAL
   - Python (required only if using spotdl)
+
+OR 
+
+- Docker
+- SQL Server (local or Docker)
+
+OR
+
+- Docker Compose (Includes all dependencies by default)
+
+
 
 ## Getting Started
 
@@ -92,7 +99,7 @@ You can also pull and run the latest image from Docker Hub:
 
 ```bash
 docker pull removingnest109/openstream:latest
-docker run --network host -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
+docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
 ```
 
 With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
