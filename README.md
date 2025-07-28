@@ -11,14 +11,22 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
 - Automatic downloader for Youtube and Spotify links - uses yt-dlp and spotdl
 
+## Planned Features
+- Album art support
+- qBittorrent integration
+
 ## Requirements
-- Docker Compose
+- Docker Compose (Includes all dependencies by default)
 
 OR
   
-- .NET 8 SDK
-- SQL Server (local or Docker)
-- Bash (for scripts)
+- .NET 8 SDK - REQUIRED
+- SQL Server (local or Docker) - REQUIRED
+- Bash (for scripts) - REQUIRED
+- yt-dlp (for youtube downloads) - OPTIONAL
+- spotdl (for spotify downloads) - OPTIONAL
+  - Python (required only if using spotdl)
+
 
 ## Getting Started
 
@@ -31,9 +39,18 @@ cd openstream
 ### 2. Prepare Your Music Library
 Place your music files in a directory (default: `./music`). Supported formats: mp3, flac, wav, ogg, m4a.
 
+Music files can also be uploaded to the running server.
+
 ### 3. Run the Server
 
 #### Using .NET (Recommended for Development)
+yt-dlp and spotdl are optional, but are required in order for the automatic link downloader to work for the respective links.
+```bash
+sudo apt install yt-dlp
+
+pip3 install spotdl
+```
+
 Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
 
 ```bash
@@ -55,7 +72,13 @@ This will start both the SQL Server and the Openstream server.
 ## API Endpoints
 - `GET /api/tracks` — List all tracks (supports search)
 - `GET /api/tracks/{id}/stream` — Stream a track by ID
+- `GET /api/playlists` — List all playlists
+- `GET /api/playlists/id` — List songs in a selected playlist
 - `GET /health` — Health check
+- `POST /api/tracks/upload` — Upload a track from a local file
+- `POST /api/download` — Download a track from Youtube or Spotify
+- `POST /api/ingestion/scan` — Scan for new tracks
+- `POST /api/playlists` — Create a new playlist
 
 ## Customization
 You can change the music library path and database connection via command-line arguments or environment variables.
