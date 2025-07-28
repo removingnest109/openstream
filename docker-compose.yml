@@ -19,7 +19,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./music:/music
+      - ./music:/app/music
 
 
 volumes:

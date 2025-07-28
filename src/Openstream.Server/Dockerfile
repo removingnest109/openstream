@@ -62,7 +62,7 @@ ENV PATH="/opt/spotdl-venv/bin:$PATH"
 COPY wait-for-sql.sh /app/
 
 # Create music directory and set permissions
-RUN mkdir -p /music && chmod 777 /music
+RUN mkdir -p /app/music && chmod 777 /app/music
 
 # Copy published files
 COPY --from=build /app/publish .
