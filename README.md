@@ -42,16 +42,6 @@ pip3 install spotdl
 ./start-server.sh
 docker-compose up
 
-## From Docker Hub
-
-docker pull removingnest109/openstream:latest
-docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
-
-## From GitHub Container Registry
-
-docker pull ghcr.io/removingnest109/openstream:latest
-docker run -p 9090:9090 -v $(pwd)/music:/music ghcr.io/removingnest109/openstream:latest
-
 ## Getting Started
 
 ### 1. Clone the Repository
@@ -103,16 +93,11 @@ This will start both the SQL Server and the Openstream server.
 
 #### Using Prebuilt Docker Image
 
-You can also pull and run the latest image from Docker Hub or GitHub Container Registry:
+You can also pull and run the latest image from Docker Hub:
 
 ```bash
-# From Docker Hub
 docker pull removingnest109/openstream:latest
 docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
-
-# From GitHub Container Registry
-docker pull ghcr.io/removingnest109/openstream:latest
-docker run -p 9090:9090 -v $(pwd)/music:/music ghcr.io/removingnest109/openstream:latest
 ```
 
 ## Environment Variables
