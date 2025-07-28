@@ -14,7 +14,7 @@ wait_for_sql() {
 # Default values (same as start-server.sh)
 PASSWORD="YourStrong!Passw0rd"
 USERNAME="sa"
-SERVER="host.docker.internal"
+SERVER="172.17.0.1"  # Default Docker bridge IP
 MUSIC_LIBRARY_PATH="$(pwd)/music"
 NO_FRONTEND=false
 

@@ -74,7 +74,7 @@ Options:
 
 To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
-#### Using Docker Compose
+#### Using Docker Compose (Easiest)
 
 Edit `docker-compose.yml` to set your SQL Server connection string if needed.
 
@@ -83,6 +83,8 @@ docker-compose up
 ```
 
 This will start both the SQL Server and the Openstream server.
+
+The Docker Compose file will automatically setup mssql-server, yt-dlp, and spotdl.
 
 #### Using Prebuilt Docker Image
 
@@ -94,6 +96,8 @@ docker run --network host -p 9090:9090 -v $(pwd)/music:/music removingnest109/op
 ```
 
 With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
+
+The prebuilt Docker Image includes yt-dlp and spotdl.
 
 ## Environment Variables
 
