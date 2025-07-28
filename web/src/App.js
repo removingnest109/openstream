@@ -410,6 +410,9 @@ function App() {
                       .then(res => {
                         if (res.ok) {
                           alert('Library rescan started');
+                          fetch('/api/tracks')
+                            .then(res => res.json())
+                            .then(setTracks);
                         } else {
                           alert('Failed to start rescan');
                         }
