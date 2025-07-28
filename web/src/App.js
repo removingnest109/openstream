@@ -19,13 +19,12 @@ function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [albums, setAlbums] = useState([]);
   const [artists, setArtists] = useState([]);
-  const [view, setView] = useState('library'); // 'library' | 'albums' | 'artists'
+  const [view, setView] = useState('library');
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [primaryColor, setPrimaryColor] = useState(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#e5e743');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Update CSS variable when primaryColor changes
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
   }, [primaryColor]);
@@ -86,7 +85,7 @@ function App() {
   };
 
   const toggleShuffle = () => {
-    shuffleHistory.current = []; // reset history on toggle
+    shuffleHistory.current = [];
     setShuffle(!shuffle);
   };
 
