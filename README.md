@@ -72,7 +72,9 @@ Options:
 - `-s` SQL server address (default: localhost)
 - `-m` Music library path (default: ./music)
 
-#### Using Docker
+To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
+
+#### Using Docker Compose
 
 Edit `docker-compose.yml` to set your SQL Server connection string if needed.
 
@@ -88,8 +90,10 @@ You can also pull and run the latest image from Docker Hub:
 
 ```bash
 docker pull removingnest109/openstream:latest
-docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
+docker run --network host -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
 ```
+
+With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
 ## Environment Variables
 
