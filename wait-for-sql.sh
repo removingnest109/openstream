@@ -27,11 +27,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Wait for SQL Server using parsed SERVER (host) and default port 1433
-SQL_HOST="$SERVER"
-SQL_PORT="1433"
-wait_for_sql "$SQL_HOST" "$SQL_PORT"
-
 # Start the application with parsed arguments
 echo "Starting application..."
 DOTNET_ARGS=(
