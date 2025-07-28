@@ -53,11 +53,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.WebHost.UseUrls("http://0.0.0.0:9090");
 var app = builder.Build();
 
-// Initialize database
-using (var scope = app.Services.CreateScope())
+
+// Initialize database with retry logic
+var maxRetries = 30;
+var delaySeconds = 2;
+var initialized = false;
+for (var attempt = 1; attempt <= maxRetries && !initialized; attempt++)
 {
-    var db = scope.ServiceProvider.GetRequiredService<MusicDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<MusicDbContext>();
+        db.Database.Migrate();
+        initialized = true;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Startup] Database connection failed (attempt {attempt}/{maxRetries}): {ex.Message}");
+        if (attempt == maxRetries) throw;
+        Thread.Sleep(delaySeconds * 1000);
+    }
 }
 
 app.UseHttpsRedirection();

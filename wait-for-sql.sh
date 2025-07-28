@@ -1,18 +1,6 @@
 #!/bin/bash
 set -e
 
-sleep 5
-
-# Function to wait for SQL Server
-wait_for_sql() {
-    echo "Waiting for SQL Server at $1:$2..."
-    until nc -z $1 $2; do
-        echo "SQL Server unavailable, retrying in 5 seconds..."
-        sleep 5
-    done
-    echo "SQL Server is ready!"
-}
-
 # Default values (same as start-server.sh)
 PASSWORD="YourStrong!Passw0rd"
 USERNAME="sa"
