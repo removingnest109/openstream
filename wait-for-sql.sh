@@ -14,7 +14,7 @@ wait_for_sql() {
 # Default values (same as start-server.sh)
 PASSWORD="YourStrong!Passw0rd"
 USERNAME="sa"
-SERVER="localhost"
+SERVER="host.docker.internal"
 MUSIC_LIBRARY_PATH="$(pwd)/music"
 NO_FRONTEND=false
 
