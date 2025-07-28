@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+sleep 5
+
 # Function to wait for SQL Server
 wait_for_sql() {
     echo "Waiting for SQL Server at $1:$2..."
