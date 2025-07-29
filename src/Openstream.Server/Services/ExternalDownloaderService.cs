@@ -14,20 +14,11 @@ public class ExternalDownloaderService
         _musicLibraryPath = musicLibraryPath;
     }
 
+
     public async Task<(bool Success, string? Error)> DownloadAsync(string url, CancellationToken cancellationToken = default)
     {
-        string tool;
-        string args;
-        if (IsSpotifyUrl(url))
-        {
-            tool = "spotdl";
-            args = $"download {EscapeArg(url)} --output {_musicLibraryPath}";
-        }
-        else
-        {
-            tool = "yt-dlp";
-            args = $"-x --audio-format mp3 --yes-playlist -o {_musicLibraryPath}/%(title)s.%(ext)s {EscapeArg(url)}";
-        }
+        var tool = "yt-dlp";
+        var args = $"-x --audio-format mp3 --yes-playlist -o {_musicLibraryPath}/%(title)s.%(ext)s {EscapeArg(url)}";
 
         try
         {
@@ -59,6 +50,5 @@ public class ExternalDownloaderService
         }
     }
 
-    private static bool IsSpotifyUrl(string url) => url.Contains("spotify.com/");
     private static string EscapeArg(string arg) => arg.Replace("\"", "\\\"");
 }

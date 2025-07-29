@@ -37,7 +37,7 @@ WORKDIR /app
 
 # Install dependencies
 RUN apt-get update && \
-    apt-get install -y libtag1-dev curl gnupg ffmpeg yt-dlp python3 python3-pip && \
+    apt-get install -y libtag1-dev curl gnupg ffmpeg yt-dlp && \
     # Download and install Microsoft GPG key
     curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-archive-keyring.gpg && \
     # Add repository with proper signed-by
@@ -48,15 +48,6 @@ RUN apt-get update && \
     apt-get purge -y --auto-remove curl gnupg && \
     rm -rf /var/lib/apt/lists/*
 
-
-# Install python3-venv and set up spotdl in a virtual environment
-RUN apt-get update && \
-    apt-get install -y python3-venv && \
-    python3 -m venv /opt/spotdl-venv && \
-    /opt/spotdl-venv/bin/pip install --upgrade pip && \
-    /opt/spotdl-venv/bin/pip install spotdl && \
-    rm -rf /var/lib/apt/lists/*
-ENV PATH="/opt/spotdl-venv/bin:$PATH"
 
 # Copy wait script
 COPY wait-for-sql.sh /app/

@@ -573,7 +573,7 @@ function DownloadUrlRow({ setTracks }) {
       <input
         id="download-url"
         type="url"
-        placeholder="Paste YouTube or Spotify link..."
+        placeholder="Paste YouTube link..."
         value={url}
         onChange={e => setUrl(e.target.value)}
         style={{ flex: 1, marginRight: 8 }}

@@ -13,7 +13,7 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
 - Web UI for managing and accessing the server - included with server
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
-- Automatic downloader for Youtube and Spotify links - uses yt-dlp and spotdl
+- Automatic downloader for Youtube links - uses yt-dlp
 
 ## Planned Features
 
@@ -26,8 +26,7 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - SQL Server (local or Docker) - REQUIRED
 - Bash (for scripts) - REQUIRED
 - yt-dlp (for youtube downloads) - OPTIONAL
-- spotdl (for spotify downloads) - OPTIONAL
-  - Python (required only if using spotdl)
+  - ffmpeg (if using yt-dlp)
 
 OR
 
@@ -57,11 +56,10 @@ Music files can also be uploaded to the running server.
 
 #### Using .NET (Recommended for Development)
 
-yt-dlp and spotdl are optional, but are required in order for the automatic link downloader to work for the respective links.
+yt-dlp is optional, but is needed in order for the automatic link downloader to work.
 
 ```bash
 sudo apt install yt-dlp
-pip3 install spotdl
 ```
 
 Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
@@ -89,7 +87,7 @@ docker-compose up
 
 This will start both the SQL Server and the Openstream server.
 
-The Docker Compose file will automatically setup mssql-server, yt-dlp, and spotdl.
+The Docker Compose file will automatically setup mssql-server and yt-dlp.
 
 #### Using Prebuilt Docker Image
 
@@ -102,7 +100,7 @@ docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
 
 With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
-The prebuilt Docker Image includes yt-dlp and spotdl.
+The prebuilt Docker Image includes yt-dlp.
 
 ## Environment Variables
 
