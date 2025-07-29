@@ -5,11 +5,12 @@ on:
     branches:
       - main
     paths:
-      - src
-      - web
+      - src/**
+      - web/**
       - wait-for-sql.sh
       - Openstream.sln
       - global.json
+      - .github/workflows/docker-image.yml
       
 jobs:
   build:
