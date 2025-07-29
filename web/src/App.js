@@ -260,12 +260,15 @@ function App() {
                     ? `Tracks by ${selectedArtist.name}`
                     : 'Your Library'}
             </h1>
-            <div className="track-header">
-              <div className="col-art" style={{ width: 48 }}></div>
-              <div className="col-title">Title</div>
-              <div className="col-artist">Artist</div>
-              <div className="col-album">Album</div>
-            </div>
+            {/* Header: hide on mobile, show on desktop */}
+            {!isMobile && (
+              <div className="track-header">
+                <div className="col-art" style={{ width: 48 }}></div>
+                <div className="col-title">Title</div>
+                <div className="col-artist">Artist</div>
+                <div className="col-album">Album</div>
+              </div>
+            )}
 
             {(selectedPlaylist ? selectedPlaylist.tracks : tracks)
               .filter(track => {
@@ -275,31 +278,57 @@ function App() {
               })
               .map((track) => {
                 const index = tracks.findIndex(t => t.id === track.id);
-                // Use /api/albumart/{fileName} if albumArtPath is present, else fallback to logoSvg
                 const artUrl = track.album?.albumArtPath
                   ? track.album.albumArtPath.startsWith('/api/albumart/')
                     ? track.album.albumArtPath
                     : `/api/albumart/${track.album.albumArtPath}`
                   : logoSvg;
-                return (
-                  <div
-                    key={track.id}
-                    className={`track-item ${currentTrackIndex === index ? 'active' : ''}`}
-                    onClick={() => playTrack(index)}
-                  >
-                    <div className="album-art-wrapper">
-                      <img
-                        src={artUrl}
-                        alt="Album Art"
-                        className="album-art-img"
-                        onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
-                      />
+                if (isMobile) {
+                  // Mobile: simplified layout
+                  return (
+                    <div
+                      key={track.id}
+                      className={`track-item mobile ${currentTrackIndex === index ? 'active' : ''}`}
+                      onClick={() => playTrack(index)}
+                      style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #ccc' }}
+                    >
+                      <div className="album-art-wrapper" style={{ width: 48, height: 48, marginRight: 12 }}>
+                        <img
+                          src={artUrl}
+                          alt="Album Art"
+                          className="album-art-img"
+                          style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6 }}
+                          onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 500, fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title || track.id}</span>
+                        <span style={{ fontSize: 13, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.album?.artist?.name || 'Unknown Artist'}</span>
+                      </div>
                     </div>
-                    <div className="col-title">{track.title || track.id}</div>
-                    <div className="col-artist">{track.album?.artist?.name || 'Unknown Artist'}</div>
-                    <div className="col-album">{track.album?.title || 'Unknown Album'}</div>
-                  </div>
-                )
+                  );
+                } else {
+                  // Desktop: original layout
+                  return (
+                    <div
+                      key={track.id}
+                      className={`track-item ${currentTrackIndex === index ? 'active' : ''}`}
+                      onClick={() => playTrack(index)}
+                    >
+                      <div className="album-art-wrapper">
+                        <img
+                          src={artUrl}
+                          alt="Album Art"
+                          className="album-art-img"
+                          onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
+                        />
+                      </div>
+                      <div className="col-title">{track.title || track.id}</div>
+                      <div className="col-artist">{track.album?.artist?.name || 'Unknown Artist'}</div>
+                      <div className="col-album">{track.album?.title || 'Unknown Album'}</div>
+                    </div>
+                  );
+                }
               })}
           </div>
         )}
