@@ -2,10 +2,15 @@ name: Docker Image
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
+    branches:
+      - main
+    paths:
+      - src
+      - web
+      - wait-for-sql.sh
+      - Openstream.sln
+      - global.json
+      
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,11 +49,3 @@ jobs:
             ${{ steps.meta.outputs.tags }}
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/openstream:latest
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Update Docker Hub Description
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: removingnest109/openstream
