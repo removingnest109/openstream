@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaRandom, FaRedo, FaVolumeUp, FaVolumeMute, FaMusic, FaCompactDisc, FaUser, FaListUl, FaCog } from 'react-icons/fa';
 import './App.css';
+import logoSvg from './logo.svg';
 
 
 function App() {
@@ -260,6 +261,7 @@ function App() {
                     : 'Your Library'}
             </h1>
             <div className="track-header">
+              <div className="col-art" style={{ width: 48 }}></div>
               <div className="col-title">Title</div>
               <div className="col-artist">Artist</div>
               <div className="col-album">Album</div>
@@ -273,12 +275,26 @@ function App() {
               })
               .map((track) => {
                 const index = tracks.findIndex(t => t.id === track.id);
+                // Use /api/albumart/{fileName} if albumArtPath is present, else fallback to logoSvg
+                const artUrl = track.album?.albumArtPath
+                  ? track.album.albumArtPath.startsWith('/api/albumart/')
+                    ? track.album.albumArtPath
+                    : `/api/albumart/${track.album.albumArtPath}`
+                  : logoSvg;
                 return (
                   <div
                     key={track.id}
                     className={`track-item ${currentTrackIndex === index ? 'active' : ''}`}
                     onClick={() => playTrack(index)}
                   >
+                    <div className="album-art-wrapper">
+                      <img
+                        src={artUrl}
+                        alt="Album Art"
+                        className="album-art-img"
+                        onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
+                      />
+                    </div>
                     <div className="col-title">{track.title || track.id}</div>
                     <div className="col-artist">{track.album?.artist?.name || 'Unknown Artist'}</div>
                     <div className="col-album">{track.album?.title || 'Unknown Album'}</div>
@@ -334,6 +350,18 @@ function App() {
                       setView('library');
                     }}
                   >
+                    <div className="album-art-wrapper album-tile-art">
+                      <img
+                        src={album.albumArtPath
+                          ? album.albumArtPath.startsWith('/api/albumart/')
+                            ? album.albumArtPath
+                            : `/api/albumart/${album.albumArtPath}`
+                          : logoSvg}
+                        alt="Album Art"
+                        className="album-art-img"
+                        onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
+                      />
+                    </div>
                     <div className="tile-title">{album.title}</div>
                     <div className="tile-subtitle">{album.artist?.name}</div>
                   </div>

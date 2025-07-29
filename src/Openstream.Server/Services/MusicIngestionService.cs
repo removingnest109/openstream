@@ -70,6 +70,13 @@ public class MusicIngestionService
                 albumCache[albumKey] = album;
             }
 
+            // Always update AlbumArtPath if we have new art and it's not set or has changed
+            if (!string.IsNullOrEmpty(trackData.Album.AlbumArtPath) &&
+                (string.IsNullOrEmpty(album.AlbumArtPath) || album.AlbumArtPath != trackData.Album.AlbumArtPath))
+            {
+                album.AlbumArtPath = trackData.Album.AlbumArtPath;
+            }
+
             var track = new Track
             {
                 Title = trackData.Title,

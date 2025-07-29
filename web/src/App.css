@@ -1,3 +1,28 @@
+/* Album Art Consistent Sizing */
+.album-art-wrapper {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #222;
+  border-radius: 4px;
+}
+.album-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #222;
+  display: block;
+}
+.album-tile-art {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
 /* Sidebar toggle button */
 .sidebar-toggle {
   position: fixed;

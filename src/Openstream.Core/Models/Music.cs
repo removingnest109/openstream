@@ -15,6 +15,7 @@ public class Album
     public Artist? Artist { get; set; }
     public int? Year { get; set; }
     public List<Track> Tracks { get; } = new();
+    public string? AlbumArtPath { get; set; } // Relative path to album art image
 }
 
 public class Track

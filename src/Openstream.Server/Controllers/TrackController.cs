@@ -1,3 +1,4 @@
+
 using Openstream.Core.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,22 @@ namespace Openstream.Server.Controllers;
 [Route("api/tracks")]
 public class TracksController : ControllerBase
 {
+
+    [HttpGet("/api/albumart/{fileName}")]
+    public IActionResult GetAlbumArt(string fileName)
+    {
+        var albumArtDir = Path.Combine(AppContext.BaseDirectory, "albumart");
+        var artPath = Path.Combine(albumArtDir, fileName);
+        if (System.IO.File.Exists(artPath))
+        {
+            return PhysicalFile(artPath, "image/jpeg");
+        }
+        // Fallback to logo.svg in web/src
+        var logoPath = Path.Combine(AppContext.BaseDirectory, "..", "web", "src", "logo.svg");
+        if (System.IO.File.Exists(logoPath))
+            return PhysicalFile(logoPath, "image/svg+xml");
+        return NotFound();
+    }
     private readonly MusicDbContext _db;
     private readonly IngestionConfig _config;
     private readonly MusicIngestionService _ingestion;
@@ -44,7 +61,29 @@ public class TracksController : ControllerBase
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
-        return Ok(await query.ToListAsync());
+        var tracks = await query.ToListAsync();
+        // Project to include AlbumArtPath in response
+        var result = tracks.Select(t => new {
+            t.Id,
+            t.Title,
+            t.Path,
+            t.Duration,
+            t.TrackNumber,
+            t.AlbumId,
+            Album = t.Album == null ? null : new {
+                t.Album.Id,
+                t.Album.Title,
+                t.Album.ArtistId,
+                Artist = t.Album.Artist == null ? null : new {
+                    t.Album.Artist.Id,
+                    t.Album.Artist.Name
+                },
+                t.Album.Year,
+                AlbumArtPath = string.IsNullOrEmpty(t.Album.AlbumArtPath) ? null : $"/api/albumart/{t.Album.AlbumArtPath}"
+            },
+            t.DateAdded
+        });
+        return Ok(result);
     }
 
     [HttpGet("{id}/stream")]

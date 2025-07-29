@@ -22,7 +22,29 @@ public class PlaylistsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Playlist>>> GetPlaylists()
     {
         var playlists = await _db.Playlists.Include(p => p.Tracks).ToListAsync();
-        return Ok(playlists);
+        // Project playlists to include AlbumArtPath for each track's album
+        var result = playlists.Select(p => new {
+            p.Id,
+            p.Name,
+            p.CreatedAt,
+            Tracks = p.Tracks.Select(t => new {
+                t.Id,
+                t.Title,
+                t.Path,
+                t.Duration,
+                t.TrackNumber,
+                t.AlbumId,
+                Album = t.Album == null ? null : new {
+                    t.Album.Id,
+                    t.Album.Title,
+                    t.Album.ArtistId,
+                    t.Album.Year,
+                    t.Album.AlbumArtPath
+                },
+                t.DateAdded
+            })
+        });
+        return Ok(result);
     }
 
     // GET: api/playlists/{id}
@@ -32,7 +54,29 @@ public class PlaylistsController : ControllerBase
         var playlist = await _db.Playlists.Include(p => p.Tracks).FirstOrDefaultAsync(p => p.Id == id);
         if (playlist == null)
             return NotFound();
-        return Ok(playlist);
+        // Project playlist to include AlbumArtPath for each track's album
+        var result = new {
+            playlist.Id,
+            playlist.Name,
+            playlist.CreatedAt,
+            Tracks = playlist.Tracks.Select(t => new {
+                t.Id,
+                t.Title,
+                t.Path,
+                t.Duration,
+                t.TrackNumber,
+                t.AlbumId,
+                Album = t.Album == null ? null : new {
+                    t.Album.Id,
+                    t.Album.Title,
+                    t.Album.ArtistId,
+                    t.Album.Year,
+                    t.Album.AlbumArtPath
+                },
+                t.DateAdded
+            })
+        };
+        return Ok(result);
     }
 
     // POST: api/playlists

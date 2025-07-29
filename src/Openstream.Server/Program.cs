@@ -62,6 +62,13 @@ for (var attempt = 1; attempt <= maxRetries && !initialized; attempt++)
     }
     catch (Exception ex)
     {
+        // If the error is "already exists", log and continue
+        if (ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"[Startup] Database already exists, continuing. ({ex.Message})");
+            initialized = true;
+            break;
+        }
         Console.WriteLine($"[Startup] Database connection failed (attempt {attempt}/{maxRetries}): {ex.Message}");
         if (attempt == maxRetries) throw;
         Thread.Sleep(delaySeconds * 1000);
