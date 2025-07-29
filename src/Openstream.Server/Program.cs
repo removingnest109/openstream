@@ -34,13 +34,6 @@ builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("In
 builder.Services.AddSingleton<MusicIngestionService>();
 builder.Services.AddHostedService<Worker>();
 
-// Register downloader service with music library path from config
-builder.Services.AddSingleton<ExternalDownloaderService>(sp =>
-{
-    var config = sp.GetRequiredService<IOptions<IngestionConfig>>().Value;
-    var logger = sp.GetRequiredService<ILogger<ExternalDownloaderService>>();
-    return new ExternalDownloaderService(logger, config.MusicLibraryPath);
-});
 
 // Configure authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

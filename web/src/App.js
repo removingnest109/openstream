@@ -398,7 +398,6 @@ function App() {
                   />
                 </div>
               </div>
-              <DownloadUrlRow setTracks={setTracks} />
               <div className="settings-row">
                 <label htmlFor="rescan" className="settings-label">Rescan Library</label>
                 <button
@@ -529,64 +528,6 @@ function App() {
           )}
         </footer>
       )}
-    </div>
-  );
-}
-
-// DownloadUrlRow: field to submit a URL to /api/download
-function DownloadUrlRow({ setTracks }) {
-  const [url, setUrl] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleDownload = async (e) => {
-    e.preventDefault();
-    if (!url) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to download");
-      }
-      alert("Download and ingestion started. It may take a moment to appear in your library.");
-      setUrl("");
-      // Optionally refresh tracks after a delay
-      setTimeout(() => {
-        fetch('/api/tracks')
-          .then(res => res.json())
-          .then(updatedTracks => setTracks(updatedTracks));
-      }, 4000);
-    } catch (err) {
-      alert(err.message || "Failed to download");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="settings-row">
-      <label htmlFor="download-url" className="settings-label">Download from URL</label>
-      <input
-        id="download-url"
-        type="url"
-        placeholder="Paste YouTube link..."
-        value={url}
-        onChange={e => setUrl(e.target.value)}
-        style={{ flex: 1, marginRight: 8 }}
-        disabled={submitting}
-      />
-      <button
-        type="button"
-        className="settings-button"
-        onClick={handleDownload}
-        disabled={submitting || !url}
-      >
-        Download
-      </button>
     </div>
   );
 }

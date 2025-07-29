@@ -13,7 +13,6 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
 - Web UI for managing and accessing the server - included with server
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
-- Automatic downloader for Youtube links - uses yt-dlp
 
 ## Planned Features
 
@@ -25,8 +24,6 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - .NET 8 SDK - REQUIRED
 - SQL Server (local or Docker) - REQUIRED
 - Bash (for scripts) - REQUIRED
-- yt-dlp (for youtube downloads) - OPTIONAL
-  - ffmpeg (if using yt-dlp)
 
 OR
 
@@ -56,12 +53,6 @@ Music files can also be uploaded to the running server.
 
 #### Using .NET (Recommended for Development)
 
-yt-dlp is optional, but is needed in order for the automatic link downloader to work.
-
-```bash
-sudo apt install yt-dlp
-```
-
 Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
 
 ```bash
@@ -87,7 +78,7 @@ docker-compose up
 
 This will start both the SQL Server and the Openstream server.
 
-The Docker Compose file will automatically setup mssql-server and yt-dlp.
+The Docker Compose file will automatically setup mssql-server.
 
 #### Using Prebuilt Docker Image
 
@@ -99,8 +90,6 @@ docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
 ```
 
 With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
-
-The prebuilt Docker Image includes yt-dlp.
 
 ## Environment Variables
 
@@ -122,7 +111,6 @@ You can also use command-line arguments as described above.
 - `GET /api/playlists/id` — List songs in a selected playlist
 - `GET /health` — Health check
 - `POST /api/tracks/upload` — Upload a track from a local file
-- `POST /api/download` — Download a track from Youtube or Spotify
 - `POST /api/ingestion/scan` — Scan for new tracks
 - `POST /api/playlists` — Create a new playlist
 
