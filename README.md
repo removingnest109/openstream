@@ -1,8 +1,13 @@
 # Openstream
 
-![Build Status](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)
-![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream)
+[![Build Status](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)](https://hub.docker.com/r/removingnest109/openstream)
+[![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream)](https://hub.docker.com/r/removingnest109/openstream)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![C#](https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=fff)
+![React](https://img.shields.io/badge/React-%2320232a.svg?logo=react&logoColor=%2361DAFB)
+![Microsoft SQL Server](https://custom-icon-badges.demolab.com/badge/Microsoft%20SQL%20Server-CC2927?logo=mssqlserver-white&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff)
 
 Openstream is a self-hosted music library and streaming server. It scans a user defined music directory, ingests metadata into a SQL database, and provides a REST API and Web UI for browsing and streaming your music collection.
 
