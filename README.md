@@ -78,12 +78,14 @@ To run with .NET, you will need a separate instance of mssql-server running and 
 Edit `docker-compose.yml` to set your SQL Server connection string if needed.
 
 ```bash
-docker-compose up
+docker-compose up -d --pull
 ```
 
 This will start both the SQL Server and the Openstream server.
 
-The Docker Compose file will automatically setup mssql-server.
+-d runs the containers in detached mode, and --pull ensures the latest image is always pulled
+
+The Docker Compose file will automatically setup mssql-server with the user "sa" and the password in the docker-compose.yml.
 
 #### Using Prebuilt Docker Image
 
