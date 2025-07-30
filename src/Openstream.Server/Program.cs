@@ -25,11 +25,18 @@ builder.Services.AddSpaStaticFiles(configuration => {
 
 // Configure database
 builder.Services.AddDbContext<MusicDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure()
+    )
+);
 
 
 // Register ingestion background service
-builder.Services.AddSingleton<MusicScanner>();
+// Pass the configured music library path to MusicScanner
+var musicLibraryPath = builder.Configuration.GetSection("Ingestion").Get<IngestionConfig>()?.MusicLibraryPath
+    ?? Path.Combine(AppContext.BaseDirectory, "music");
+builder.Services.AddSingleton(new MusicScanner(musicLibraryPath));
 builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
 builder.Services.AddSingleton<MusicIngestionService>();
 builder.Services.AddHostedService<Worker>();

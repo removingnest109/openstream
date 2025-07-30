@@ -32,31 +32,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-# Clean up old frontend build artifacts before copying new ones
-if [ "$NO_FRONTEND" != true ]; then
-  # Remove old dist directory to avoid stale files
-  if [ -d "src/Openstream.Server/wwwroot/dist" ]; then
-    rm -rf src/Openstream.Server/wwwroot/dist
-  fi
-  # Copy new frontend build
-  if [ ! -d "wwwroot/" ]; then
-    mkdir wwwroot/
-  fi
-  cp -r src/Openstream.Server/wwwroot/* wwwroot/
-else
-  # Ensure wwwroot/dist exists, but remove its contents to avoid serving stale files
-  if [ ! -d "wwwroot/dist" ]; then
-    mkdir -p wwwroot/dist
-  else
-    rm -rf wwwroot/dist/*
-  fi
-fi
 
 # Publish the server
 if [ "$NO_FRONTEND" = true ]; then
   dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release /p:NoFrontend=true
 else
   dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
+fi
+
+# After publish, copy frontend build to top-level wwwroot if needed
+if [ "$NO_FRONTEND" != true ]; then
+  echo "[INFO] Copying published frontend to top-level wwwroot..."
+  if [ ! -d "wwwroot/" ]; then
+    mkdir wwwroot/
+  fi
+  cp -r src/Openstream.Server/wwwroot/* wwwroot/
 fi
 
 # Find the output DLL

@@ -4,6 +4,12 @@ namespace Openstream.Server.Services;
 
 public class MusicScanner
 {
+    private readonly string _musicLibraryPath;
+    public MusicScanner(string musicLibraryPath)
+    {
+        _musicLibraryPath = musicLibraryPath;
+    }
+
     public Track? ProcessFile(string filePath, int? albumId = null)
     {
         if (!System.IO.File.Exists(filePath))
@@ -72,19 +78,48 @@ public class MusicScanner
             return;
         }
 
-        var albumArtDir = Path.Combine(AppContext.BaseDirectory, "albumart");
-        if (!Directory.Exists(albumArtDir))
-            Directory.CreateDirectory(albumArtDir);
+        // Store album art in albumart/ under the configured music library path
+        var albumArtDir = Path.Combine(_musicLibraryPath, "albumart");
+        Console.WriteLine($"[AlbumArt] albumArtDir: {albumArtDir}");
+        try
+        {
+            if (!Directory.Exists(albumArtDir))
+            {
+                Directory.CreateDirectory(albumArtDir);
+                Console.WriteLine($"[AlbumArt] Created albumArtDir: {albumArtDir}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AlbumArt] Failed to create albumArtDir: {albumArtDir} - {ex.Message}");
+            return;
+        }
 
         string artFileName = albumId.HasValue
             ? $"{albumId.Value}.jpg"
             : $"{Math.Abs(((album.Title ?? "Unknown Album") + (album.Artist?.Name ?? "Unknown Artist")).GetHashCode())}.jpg";
 
         var artPath = Path.Combine(albumArtDir, artFileName);
+        Console.WriteLine($"[AlbumArt] artPath: {artPath}");
         // Only write if file doesn't exist
         if (!File.Exists(artPath))
-            File.WriteAllBytes(artPath, pic.Data.Data);
+        {
+            try
+            {
+                File.WriteAllBytes(artPath, pic.Data.Data);
+                Console.WriteLine($"[AlbumArt] Wrote album art to: {artPath}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AlbumArt] Failed to write album art to: {artPath} - {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[AlbumArt] File already exists, not overwriting: {artPath}");
+        }
 
+        // Store only the filename for API compatibility (avoid double 'albumart/' in path)
         album.AlbumArtPath = artFileName;
     }
 }

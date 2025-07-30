@@ -15,7 +15,8 @@ public class TracksController : ControllerBase
     [HttpGet("/api/albumart/{fileName}")]
     public IActionResult GetAlbumArt(string fileName)
     {
-        var albumArtDir = Path.Combine(AppContext.BaseDirectory, "albumart");
+        // Serve from albumart under the configured music library path
+        var albumArtDir = Path.Combine(_config.MusicLibraryPath, "albumart");
         var artPath = Path.Combine(albumArtDir, fileName);
         if (System.IO.File.Exists(artPath))
         {

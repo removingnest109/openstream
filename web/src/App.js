@@ -44,9 +44,15 @@ function App() {
       .catch(err => console.error('Failed to load playlists:', err));
   }, []);
 
+  // Cache album art URLs for tracks and albums to avoid repeated computation and unnecessary requests
+  const [albumArtUrlMap, setAlbumArtUrlMap] = useState({});
+  const [albumCoverUrlMap, setAlbumCoverUrlMap] = useState({});
+
   useEffect(() => {
     const uniqueAlbums = {};
     const uniqueArtists = {};
+    const artMap = {};
+    const albumMap = {};
 
     tracks.forEach(track => {
       const album = track.album;
@@ -59,10 +65,32 @@ function App() {
       if (artist && !uniqueArtists[artist.id]) {
         uniqueArtists[artist.id] = artist;
       }
+
+      // Cache album art URL for this track
+      if (album && album.albumArtPath) {
+        artMap[track.id] = album.albumArtPath.startsWith('/api/albumart/')
+          ? album.albumArtPath
+          : `/api/albumart/${album.albumArtPath}`;
+      } else {
+        artMap[track.id] = logoSvg;
+      }
+    });
+
+    // Cache album cover URLs for albums
+    Object.values(uniqueAlbums).forEach(album => {
+      if (album.albumArtPath) {
+        albumMap[album.id] = album.albumArtPath.startsWith('/api/albumart/')
+          ? album.albumArtPath
+          : `/api/albumart/${album.albumArtPath}`;
+      } else {
+        albumMap[album.id] = logoSvg;
+      }
     });
 
     setAlbums(Object.values(uniqueAlbums));
     setArtists(Object.values(uniqueArtists));
+    setAlbumArtUrlMap(artMap);
+    setAlbumCoverUrlMap(albumMap);
   }, [tracks]);
 
 
@@ -278,11 +306,7 @@ function App() {
               })
               .map((track) => {
                 const index = tracks.findIndex(t => t.id === track.id);
-                const artUrl = track.album?.albumArtPath
-                  ? track.album.albumArtPath.startsWith('/api/albumart/')
-                    ? track.album.albumArtPath
-                    : `/api/albumart/${track.album.albumArtPath}`
-                  : logoSvg;
+                const artUrl = albumArtUrlMap[track.id] || logoSvg;
                 if (isMobile) {
                   // Mobile: simplified layout
                   return (
@@ -381,11 +405,7 @@ function App() {
                   >
                     <div className="album-art-wrapper album-tile-art">
                       <img
-                        src={album.albumArtPath
-                          ? album.albumArtPath.startsWith('/api/albumart/')
-                            ? album.albumArtPath
-                            : `/api/albumart/${album.albumArtPath}`
-                          : logoSvg}
+                        src={albumCoverUrlMap[album.id] || logoSvg}
                         alt="Album Art"
                         className="album-art-img"
                         onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
@@ -404,18 +424,32 @@ function App() {
           <div className="artist-list">
             <h1 className="app-title">Artists</h1>
             <div className="tile-grid">
-              {artists.map(artist => (
-                <div
-                  key={artist.id}
-                  className="tile"
-                  onClick={() => {
-                    setSelectedArtist(artist);
-                    setView('albums');
-                  }}
-                >
-                  <div className="tile-title">{artist.name}</div>
-                </div>
-              ))}
+              {artists.map(artist => {
+                // Find the first album for this artist
+                const artistAlbums = albums.filter(album => album.artist?.id === artist.id);
+                const firstAlbum = artistAlbums[0];
+                const coverUrl = firstAlbum ? (albumCoverUrlMap[firstAlbum.id] || logoSvg) : logoSvg;
+                return (
+                  <div
+                    key={artist.id}
+                    className="tile"
+                    onClick={() => {
+                      setSelectedArtist(artist);
+                      setView('albums');
+                    }}
+                  >
+                    <div className="album-art-wrapper album-tile-art" style={{ marginBottom: 8 }}>
+                      <img
+                        src={coverUrl}
+                        alt="Album Art"
+                        className="album-art-img"
+                        onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
+                      />
+                    </div>
+                    <div className="tile-title">{artist.name}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

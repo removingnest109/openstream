@@ -52,8 +52,9 @@ RUN apt-get update && \
 # Copy wait script
 COPY wait-for-sql.sh /app/
 
-# Create music directory and set permissions
-RUN mkdir -p /app/music && chmod 777 /app/music
+
+# Create music and albumart directories and set permissions
+RUN mkdir -p /app/music/albumart && chmod -R 777 /app/music
 
 # Copy published files
 COPY --from=build /app/publish .
