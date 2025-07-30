@@ -1,5 +1,5 @@
 services:
-  sql-server:
+  sqldb:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: Y
@@ -8,8 +8,9 @@ services:
       - "1433:1433"
     volumes:
       - sql-data:/var/opt/mssql
+    pull_policy: daily
 
-  openstream-server:
+  server:
     image: removingnest109/openstream:latest
     environment:
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=Openstream;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
@@ -21,7 +22,4 @@ services:
     post_start:
       - command: chown -R /app/music 1000:1000
         user: root
-
-
-volumes:
-  sql-data:
+    pull_policy: daily
