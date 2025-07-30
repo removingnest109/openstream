@@ -83,7 +83,7 @@ docker-compose up -d --pull
 
 This will start both the SQL Server and the Openstream server.
 
--d runs the containers in detached mode, and --pull ensures the latest image is always pulled
+-d runs the containers in detached mode, and --pull ensures the latest image is always pulled.
 
 The Docker Compose file will automatically setup mssql-server with the user "sa" and the password in the docker-compose.yml.
 
