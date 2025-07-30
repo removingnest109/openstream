@@ -23,3 +23,6 @@ services:
       - command: chown -R /app/music 1000:1000
         user: root
     pull_policy: daily
+
+volumes:
+  sql-data:
