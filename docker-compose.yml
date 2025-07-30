@@ -18,6 +18,9 @@ services:
       - "9090:9090"
     volumes:
       - ./music:/app/music
+    post_start:
+      - command: chown -R /app/music 1000:1000
+        user: root
 
 
 volumes:
