@@ -14,7 +14,7 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 ## Features
 
 - Automatic music library scanning and ingestion
-- REST API for tracks, albums, and artists
+- REST API for tracks, albums, playlists, and artists
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
 - Web UI for managing and accessing the server - included with server
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
@@ -112,14 +112,27 @@ You can also use command-line arguments as described above.
 
 ## API Endpoints
 
-- `GET /api/tracks` — List all tracks (supports search)
+### Tracks
+
+- `GET /api/tracks` — List all tracks (optionally filter by `?search=`)
 - `GET /api/tracks/{id}/stream` — Stream a track by ID
-- `GET /api/playlists` — List all playlists
-- `GET /api/playlists/id` — List songs in a selected playlist
-- `GET /health` — Health check
-- `POST /api/tracks/upload` — Upload a track from a local file
-- `POST /api/ingestion/scan` — Scan for new tracks
-- `POST /api/playlists` — Create a new playlist
+- `POST /api/tracks/upload` — Upload a new track (multipart/form-data)
+- `PUT /api/tracks/{id}` — Edit track metadata (title, album, artist)
+- `GET /api/albumart/{fileName}` — Get album art image by filename
+
+### Albums
+
+- `POST /api/albums/{id}/art` — Upload album art for an album (multipart/form-data)
+
+### Playlists
+
+- `GET /api/playlists` — List all playlists (with tracks and album art info)
+- `GET /api/playlists/{id}` — Get a playlist by ID (with tracks and album art info)
+- `POST /api/playlists` — Create a new playlist (JSON body: name, trackIds)
+
+### Ingestion
+
+- `POST /api/ingestion/scan` — Scan the music library for new/removed tracks
 
 ## Customization
 
