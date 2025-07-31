@@ -20,12 +20,16 @@ public class TracksController : ControllerBase
         var artPath = Path.Combine(albumArtDir, fileName);
         if (System.IO.File.Exists(artPath))
         {
+            Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
             return PhysicalFile(artPath, "image/jpeg");
         }
         // Fallback to logo.svg in web/src
         var logoPath = Path.Combine(AppContext.BaseDirectory, "..", "web", "src", "logo.svg");
         if (System.IO.File.Exists(logoPath))
+        {
+            Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
             return PhysicalFile(logoPath, "image/svg+xml");
+        }
         return NotFound();
     }
     private readonly MusicDbContext _db;
@@ -139,4 +143,13 @@ public class TracksController : ControllerBase
         return Ok(new { path = filePath, status = "Uploaded and scanned successfully." });
     }
 
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> EditTrackMetadata(Guid id, [FromBody] TrackEditDto dto, [FromServices] TrackMetadataService metadataService)
+    {
+        var result = await metadataService.UpdateTrackMetadataAsync(id, dto);
+        if (!result.Success)
+            return BadRequest(result.ErrorMessage);
+        return Ok(new { status = "Track metadata updated successfully." });
+    }
 }

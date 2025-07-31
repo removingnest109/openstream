@@ -1,3 +1,142 @@
+/* Track menu (dropdown) styles */
+.track-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.track-menu-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  transition: background 0.2s, color 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+.track-item:hover .track-menu-btn,
+.track-item.mobile .track-menu-btn,
+.track-menu-wrapper:hover .track-menu-btn {
+  opacity: 1;
+  pointer-events: auto;
+  color: var(--primary-color);
+}
+.track-menu-btn:focus {
+  outline: 2px solid var(--primary-color);
+}
+.track-menu-dropdown {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #000a;
+  min-width: 120px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+}
+.track-menu-item {
+  background: none;
+  border: none;
+  color: #fff;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.track-menu-item:hover {
+  background: var(--primary-color);
+  color: #222;
+}
+/* Modal for editing track metadata */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: #181818;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px #000a;
+  padding: 2rem 2.5rem;
+  min-width: 320px;
+  max-width: 95vw;
+  color: #fff;
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.edit-form label {
+  color: #ccc;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+.edit-form input[type="text"] {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #222;
+  color: #fff;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+.edit-form .form-row {
+  margin-bottom: 1rem;
+}
+.edit-form .form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+.edit-form button {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.edit-form button.cancel {
+  background: #333;
+  color: #fff;
+}
+.edit-form button:disabled {
+  background: #333;
+  color: #888;
+  cursor: not-allowed;
+}
+.album-art-upload-btn {
+  background: #222;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+}
+.album-art-upload-btn:hover {
+  background: var(--primary-color);
+  color: #222;
+}
 /* Album Art Consistent Sizing */
 .album-art-wrapper {
   width: 48px;

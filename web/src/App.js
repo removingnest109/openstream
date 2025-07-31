@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaRandom, FaRedo, FaVolumeUp, FaVolumeMute, FaMusic, FaCompactDisc, FaUser, FaListUl, FaCog } from 'react-icons/fa';
+import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaRandom, FaRedo, FaVolumeUp, FaVolumeMute, FaMusic, FaCompactDisc, FaUser, FaListUl, FaCog, FaUpload, FaBars } from 'react-icons/fa';
 import './App.css';
 import logoSvg from './logo.svg';
 
@@ -25,6 +25,79 @@ function App() {
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [primaryColor, setPrimaryColor] = useState(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#e5e743');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Track editing modal state
+  // Track menu dropdown state
+  const [trackMenuOpen, setTrackMenuOpen] = useState(null); // track.id or null
+  const [editingTrack, setEditingTrack] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', album: '', artist: '' });
+  const [editSaving, setEditSaving] = useState(false);
+  // Album art upload state
+  const [albumArtUploading, setAlbumArtUploading] = useState({});
+
+  // Open edit modal for a track
+  const openEditTrack = (track) => {
+    setEditingTrack(track);
+    setEditForm({
+      title: track.title || '',
+      album: track.album?.title || '',
+      artist: track.album?.artist?.name || '',
+    });
+  };
+
+  // Handle edit form input
+  const handleEditFormChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  // Save edited track metadata
+  const saveEditTrack = async () => {
+    if (!editingTrack) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/tracks/${editingTrack.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editForm.title,
+          albumTitle: editForm.album,
+          artistName: editForm.artist,
+        })
+      });
+      if (!res.ok) throw new Error('Failed to update track');
+      setEditingTrack(null);
+      setEditForm({ title: '', album: '', artist: '' });
+      // Refresh tracks
+      const updatedTracks = await fetch('/api/tracks').then(r => r.json());
+      setTracks(updatedTracks);
+    } catch (err) {
+      alert('Failed to update track: ' + err.message);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // Album art upload handler
+  const handleAlbumArtUpload = async (albumId, file) => {
+    console.log('handleAlbumArtUpload called', { albumId, file });
+    if (!file) return;
+    setAlbumArtUploading(a => ({ ...a, [albumId]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/albums/${albumId}/art`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Failed to upload album art');
+      // Refresh tracks and albums
+      const updatedTracks = await fetch('/api/tracks').then(r => r.json());
+      setTracks(updatedTracks);
+    } catch (err) {
+      alert('Failed to upload album art: ' + err.message);
+    } finally {
+      setAlbumArtUploading(a => ({ ...a, [albumId]: false }));
+    }
+  };
 
   useEffect(() => {
     document.documentElement.style.setProperty('--primary-color', primaryColor);
@@ -307,6 +380,30 @@ function App() {
               .map((track) => {
                 const index = tracks.findIndex(t => t.id === track.id);
                 const artUrl = albumArtUrlMap[track.id] || logoSvg;
+                // Dropdown menu button (hamburger) - always rendered, dropdown only when open
+                const menuBtn = (
+                  <div
+                    className="track-menu-wrapper"
+                    style={{ position: 'relative', marginLeft: 8 }}
+                  >
+                    <button
+                      className="track-menu-btn"
+                      title="Track options"
+                      tabIndex={0}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setTrackMenuOpen(trackMenuOpen === track.id ? null : track.id);
+                      }}
+                    >
+                      <FaBars />
+                    </button>
+                    {trackMenuOpen === track.id && (
+                      <div className="track-menu-dropdown" onClick={e => e.stopPropagation()}>
+                        <button className="track-menu-item" onClick={() => { setTrackMenuOpen(null); openEditTrack(track); }}>Edit</button>
+                      </div>
+                    )}
+                  </div>
+                );
                 if (isMobile) {
                   // Mobile: simplified layout
                   return (
@@ -329,6 +426,7 @@ function App() {
                         <span style={{ fontWeight: 500, fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title || track.id}</span>
                         <span style={{ fontSize: 13, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.album?.artist?.name || 'Unknown Artist'}</span>
                       </div>
+                      {menuBtn}
                     </div>
                   );
                 } else {
@@ -350,6 +448,7 @@ function App() {
                       <div className="col-title">{track.title || track.id}</div>
                       <div className="col-artist">{track.album?.artist?.name || 'Unknown Artist'}</div>
                       <div className="col-album">{track.album?.title || 'Unknown Album'}</div>
+                      {menuBtn}
                     </div>
                   );
                 }
@@ -411,6 +510,25 @@ function App() {
                         onError={e => { e.target.onerror = null; e.target.src = logoSvg; }}
                       />
                     </div>
+                    {!album.albumArtPath && (
+                      <label className="album-art-upload-btn" style={{ display: 'block', margin: '0.5rem auto 0', cursor: albumArtUploading[album.id] ? 'not-allowed' : 'pointer' }} onClick={e => e.stopPropagation()}>
+                        <FaUpload style={{ marginRight: 4 }} />
+                        {albumArtUploading[album.id] ? 'Uploading...' : 'Upload Art'}
+                        <input
+                          type="file"
+                          accept="image/jpeg"
+                          style={{ display: 'none' }}
+                          disabled={albumArtUploading[album.id]}
+                          onChange={e => {
+                            console.log('Album art input onChange fired', e.target.files);
+                            if (e.target.files && e.target.files[0]) {
+                              handleAlbumArtUpload(album.id, e.target.files[0]);
+                              e.target.value = '';
+                            }
+                          }}
+                        />
+                      </label>
+                    )}
                     <div className="tile-title">{album.title}</div>
                     <div className="tile-subtitle">{album.artist?.name}</div>
                   </div>
@@ -418,6 +536,31 @@ function App() {
             </div>
           </div>
         )}
+      {/* Track Edit Modal - always rendered when editingTrack is set, regardless of view */}
+      {editingTrack && (
+        <div className="modal-backdrop" onClick={() => setEditingTrack(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <form className="edit-form" onSubmit={e => { e.preventDefault(); saveEditTrack(); }}>
+              <div className="form-row">
+                <label htmlFor="edit-title">Title</label>
+                <input id="edit-title" name="title" type="text" value={editForm.title} onChange={handleEditFormChange} required />
+              </div>
+              <div className="form-row">
+                <label htmlFor="edit-album">Album</label>
+                <input id="edit-album" name="album" type="text" value={editForm.album} onChange={handleEditFormChange} required />
+              </div>
+              <div className="form-row">
+                <label htmlFor="edit-artist">Artist</label>
+                <input id="edit-artist" name="artist" type="text" value={editForm.artist} onChange={handleEditFormChange} required />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel" onClick={() => setEditingTrack(null)} disabled={editSaving}>Cancel</button>
+                <button type="submit" disabled={editSaving || !editForm.title || !editForm.album || !editForm.artist}>{editSaving ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
         {/* ARTIST VIEW */}
         {view === 'artists' && (

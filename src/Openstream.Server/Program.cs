@@ -32,14 +32,17 @@ builder.Services.AddDbContext<MusicDbContext>(options =>
 );
 
 
-// Register ingestion background service
-// Pass the configured music library path to MusicScanner
+
+
+// Register ingestion background service and supporting services
 var musicLibraryPath = builder.Configuration.GetSection("Ingestion").Get<IngestionConfig>()?.MusicLibraryPath
     ?? Path.Combine(AppContext.BaseDirectory, "music");
 builder.Services.AddSingleton(new MusicScanner(musicLibraryPath));
 builder.Services.Configure<IngestionConfig>(builder.Configuration.GetSection("Ingestion"));
 builder.Services.AddSingleton<MusicIngestionService>();
 builder.Services.AddHostedService<Worker>();
+builder.Services.AddScoped<AlbumArtService>();
+builder.Services.AddScoped<TrackMetadataService>();
 
 
 // Configure authentication
