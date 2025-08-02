@@ -9,6 +9,7 @@ services:
     volumes:
       - sql-data:/var/opt/mssql
     pull_policy: daily
+    restart: unless_stopped
 
   server:
     image: removingnest109/openstream:latest
@@ -23,6 +24,7 @@ services:
       - command: chown -R 1000:1000 /app/music
         user: root
     pull_policy: daily
+    restart: unless_stopped
 
 volumes:
   sql-data:
