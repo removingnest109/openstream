@@ -20,10 +20,6 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
 - Album art support
 
-## Planned Features
-
-- qBittorrent integration
-
 ## Requirements
 
 - .NET 8 SDK - REQUIRED
