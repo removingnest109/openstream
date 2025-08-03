@@ -17,7 +17,9 @@ public class TrackMetadataService
 
     public async Task<(bool Success, string? ErrorMessage)> UpdateTrackMetadataAsync(Guid trackId, Openstream.Server.Controllers.TrackEditDto dto)
     {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var track = await _db.Tracks.Include(t => t.Album).ThenInclude(a => a.Artist).FirstOrDefaultAsync(t => t.Id == trackId);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         if (track == null) return (false, "Track not found.");
         // Find or create artist
         var artist = await _db.Artists.FirstOrDefaultAsync(a => a.Name == dto.ArtistName);
