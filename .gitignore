@@ -22,3 +22,5 @@ music/
 /web/build
 /wwwroot
 /src/Openstream.Server/wwwroot
+/src/Openstream.Server.Tests/bin
+/src/Openstream.Server.Tests/obj
