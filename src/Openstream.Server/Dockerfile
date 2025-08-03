@@ -11,6 +11,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
 COPY ["Openstream.sln", "."]
 COPY ["src/Openstream.Core/*.csproj", "src/Openstream.Core/"]
 COPY ["src/Openstream.Server/*.csproj", "src/Openstream.Server/"]
+COPY ["src/Openstream.Server.Tests/*.csproj", "src/Openstream.Server.Tests/"]
 
 # Restore dependencies
 RUN dotnet restore "Openstream.sln"
