@@ -19,7 +19,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [loop, setLoop] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
@@ -352,6 +352,8 @@ function App() {
         setIsMuted={setIsMuted}
         setVolume={setVolume}
         handleSeek={handleSeek}
+        setCurrentTime={setCurrentTime}
+        setDuration={setDuration}
       />
     </div>
   );
