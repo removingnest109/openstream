@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-
-
 # Default values
 PASSWORD="YourStrong!Passw0rd"
 USERNAME="sa"
@@ -10,8 +8,6 @@ SERVER="localhost"
 MUSIC_LIBRARY_PATH="$(pwd)/music"
 NOBUILD=false
 DOCKER=false
-
-
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -33,7 +29,6 @@ while [[ $# -gt 0 ]]; do
       exit 1;;
   esac
 done
-
 
 if [ "$NOBUILD" != true ]; then
   # Build React frontend and copy to server wwwroot/dist
