@@ -1,0 +1,24 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - web/**
+      - .github/workflows/frontend-tests.yml
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install frontend dependencies
+        run: cd web && npm install
+      - name: Run frontend tests
+        run: cd web && npm test -- --ci
