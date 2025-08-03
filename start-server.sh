@@ -8,7 +8,8 @@ PASSWORD="YourStrong!Passw0rd"
 USERNAME="sa"
 SERVER="localhost"
 MUSIC_LIBRARY_PATH="$(pwd)/music"
-NO_FRONTEND=false
+NOBUILD=false
+DOCKER=false
 
 
 
@@ -23,34 +24,48 @@ while [[ $# -gt 0 ]]; do
       SERVER="$2"; shift 2;;
     -m)
       MUSIC_LIBRARY_PATH="$2"; shift 2;;
-    --no-frontend)
-      NO_FRONTEND=true; shift;;
+    --nobuild)
+      NOBUILD=true; shift;;
+    --docker)
+      DOCKER=true; NOBUILD=true; shift;;
     *)
-      echo "Usage: $0 [-p password] [-u username] [-s server] [-m music_library_path] [--no-frontend]"
+      echo "Usage: $0 [-p password] [-u username] [-s server] [-m music_library_path] [--nobuild]"
       exit 1;;
   esac
 done
 
 
+if [ "$NOBUILD" != true ]; then
+  # Build React frontend and copy to server wwwroot/dist
+  echo "[INFO] Building React frontend..."
+  cd web
+  npm install
+  npm run build
+  cd ..
 
-# Publish the server
-if [ "$NO_FRONTEND" = true ]; then
-  dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release /p:NoFrontend=true
-else
+  rm -rf src/Openstream.Server/wwwroot/dist
+  mkdir -p src/Openstream.Server/wwwroot/dist
+  cp -r web/build/* src/Openstream.Server/wwwroot/dist/
+
+  # Publish the server
   dotnet publish src/Openstream.Server/Openstream.Server.csproj -c Release
-fi
 
-# After publish, copy frontend build to top-level wwwroot if needed
-if [ "$NO_FRONTEND" != true ]; then
+  # After publish, copy frontend build to top-level wwwroot
   echo "[INFO] Copying published frontend to top-level wwwroot..."
   if [ ! -d "wwwroot/" ]; then
     mkdir wwwroot/
   fi
   cp -r src/Openstream.Server/wwwroot/* wwwroot/
+else
+  echo "[INFO] --nobuild specified: Skipping frontend build, dotnet publish, and wwwroot copy. Using existing DLL and wwwroot."
 fi
 
 # Find the output DLL
-PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
+if [ "$DOCKER" = true ]; then
+  PUBLISH_DIR="/app"
+else
+  PUBLISH_DIR="src/Openstream.Server/bin/Release/net8.0/publish"
+fi
 
 # Run the published server
 dotnet "$PUBLISH_DIR/Openstream.Server.dll" \

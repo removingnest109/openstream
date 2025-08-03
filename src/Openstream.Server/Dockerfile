@@ -49,9 +49,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 
-# Copy wait script
-COPY wait-for-sql.sh /app/
 
+# Copy start-server.sh
+COPY ../../start-server.sh /app/
+RUN chmod +x /app/start-server.sh
 
 # Create music and albumart directories and set permissions
 RUN mkdir -p /app/music/albumart && chmod -R 777 /app/music
@@ -68,5 +69,5 @@ RUN groupadd -g $APP_GID appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Set entrypoint to use wait script
-ENTRYPOINT ["./wait-for-sql.sh"]
+# Set the entrypoint to start-server.sh with --docker option
+ENTRYPOINT ["/bin/bash", "./start-server.sh", "--docker"]

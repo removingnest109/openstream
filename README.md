@@ -66,6 +66,7 @@ Options:
 - `-u` SQL username (default: sa)
 - `-s` SQL server address (default: localhost)
 - `-m` Music library path (default: ./music)
+- `--nobuild` Disable build steps and use existing dll and wwwroot
 
 To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
@@ -133,12 +134,6 @@ You can also use command-line arguments as described above.
 ## Customization
 
 You can change the music library path and database connection via command-line arguments or environment variables.
-
-To run Openstream without serving the frontend use:
-
-```bash
-./start-server.sh --no-frontend
-```
 
 ## License
 
