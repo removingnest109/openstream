@@ -17,18 +17,23 @@ while [[ $# -gt 0 ]]; do
     -u)
       USERNAME="$2"; shift 2;;
     -s)
-      SERVER="$2"; shift 2;;
+      SERVER_OVERRIDE=true; SERVER="$2"; shift 2;;
     -m)
       MUSIC_LIBRARY_PATH="$2"; shift 2;;
     --nobuild)
       NOBUILD=true; shift;;
     --docker)
-      DOCKER=true; NOBUILD=true; shift;;
+      DOCKER=true; NOBUILD=true; SERVER="172.17.0.1"; shift;;
     *)
-      echo "Usage: $0 [-p password] [-u username] [-s server] [-m music_library_path] [--nobuild]"
+      echo "Usage: $0 [-p password] [-u username] [-s server] [-m music_library_path] [--nobuild] [--docker]"
       exit 1;;
   esac
 done
+
+# If both --docker and -s are provided, -s should take precedence
+if [ "$DOCKER" = true ] && [ "$SERVER_OVERRIDE" = true ]; then
+  echo "[INFO] Docker mode: using custom server IP $SERVER (overrides default 172.17.0.1)"
+fi
 
 if [ "$NOBUILD" != true ]; then
   # Build React frontend and copy to server wwwroot/dist
