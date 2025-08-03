@@ -266,6 +266,8 @@ function App() {
             trackMenuOpen={trackMenuOpen}
             setTrackMenuOpen={setTrackMenuOpen}
             openEditTrack={openEditTrack}
+            albumArtUploading={albumArtUploading}
+            handleAlbumArtUpload={handleAlbumArtUpload}
           />
         )}
         {view === 'playlists' && (

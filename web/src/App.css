@@ -633,6 +633,14 @@ body, html, #root {
   padding: 1rem;
 }
 
+@media (max-width: 600px) {
+  .tile-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+}
+
 .tile {
   background-color: #222;
   padding: 1rem;
@@ -655,11 +663,15 @@ body, html, #root {
 .tile-title {
   font-weight: bold;
   margin-top: 0.5rem;
+  text-align: center;
+  white-space: normal;
 }
 
 .tile-subtitle {
   font-size: 0.9rem;
   color: #aaa;
+  text-align: center;
+  white-space: normal;
 }
 
 .setting-item {
