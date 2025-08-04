@@ -1,6 +1,8 @@
 # Openstream
 
-[![Build Status](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)](https://hub.docker.com/r/removingnest109/openstream)
+[![Docker Image](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)](https://hub.docker.com/r/removingnest109/openstream)
+![Backend Tests](https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml/badge.svg)
+![Frontend Tests](https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml/badge.svg)
 [![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream)](https://hub.docker.com/r/removingnest109/openstream)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![C#](https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white)
