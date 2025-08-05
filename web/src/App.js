@@ -13,6 +13,7 @@ import PlayerBar from './components/PlayerBar';
 function App() {
   const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
   const [tracks, setTracks] = useState([]);
+  const [playbackTracks, setPlaybackTracks] = useState([]); // locked filtered list for playback
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
@@ -149,7 +150,13 @@ function App() {
     if (audioRef.current) audioRef.current[isPlaying ? 'play' : 'pause']();
   }, [isPlaying, currentTrackIndex]);
 
-  const playTrack = (index) => {
+  // Accepts index and filteredTracks (the list being shown when play is clicked)
+  const playTrack = (index, filteredTracks = null) => {
+    if (filteredTracks) {
+      setPlaybackTracks(filteredTracks);
+    } else if (!playbackTracks.length) {
+      setPlaybackTracks(tracks);
+    }
     setCurrentTrackIndex(index);
     setCurrentTime(0);
     setIsPlaying(true);
@@ -159,25 +166,27 @@ function App() {
     setShuffle(!shuffle);
   };
   const nextTrack = () => {
-    if (!tracks.length) return;
+    const list = playbackTracks.length ? playbackTracks : tracks;
+    if (!list.length) return;
     if (shuffle) {
       shuffleHistory.current.push(currentTrackIndex);
-      const available = tracks.map((_, i) => i).filter(i => i !== currentTrackIndex);
+      const available = list.map((_, i) => i).filter(i => i !== currentTrackIndex);
       const randomIndex = available[Math.floor(Math.random() * available.length)];
-      playTrack(randomIndex);
+      playTrack(randomIndex, list);
     } else {
-      const nextIndex = (currentTrackIndex + 1) % tracks.length;
-      playTrack(nextIndex);
+      const nextIndex = (currentTrackIndex + 1) % list.length;
+      playTrack(nextIndex, list);
     }
   };
   const prevTrack = () => {
-    if (!tracks.length) return;
+    const list = playbackTracks.length ? playbackTracks : tracks;
+    if (!list.length) return;
     if (shuffle && shuffleHistory.current.length > 0) {
       const prevIndex = shuffleHistory.current.pop();
-      playTrack(prevIndex);
+      playTrack(prevIndex, list);
     } else {
-      const prevIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
-      playTrack(prevIndex);
+      const prevIndex = (currentTrackIndex - 1 + list.length) % list.length;
+      playTrack(prevIndex, list);
     }
   };
   const handleSeek = (e) => {
@@ -215,7 +224,7 @@ function App() {
     const s = Math.floor(t % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
-  const currentTrack = tracks[currentTrackIndex];
+  const currentTrack = (playbackTracks.length ? playbackTracks : tracks)[currentTrackIndex];
   
   return (
     <div className="app-container" style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -260,7 +269,7 @@ function App() {
             selectedArtist={selectedArtist}
             isMobile={isMobile}
             currentTrackIndex={currentTrackIndex}
-            playTrack={playTrack}
+            playTrack={(index, filteredTracks) => playTrack(index, filteredTracks)}
             albumArtUrlMap={albumArtUrlMap}
             logoSvg={logoSvg}
             trackMenuOpen={trackMenuOpen}

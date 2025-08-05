@@ -18,6 +18,14 @@ export default function TrackList({
   albumArtUploading,
   handleAlbumArtUpload
 }) {
+  // Build filteredTracks once
+  const filteredTracks = (selectedPlaylist ? selectedPlaylist.tracks : tracks)
+    .filter(track => {
+      if (selectedAlbum) return track.album?.id === selectedAlbum.id;
+      if (selectedArtist) return track.album?.artist?.id === selectedArtist.id;
+      return true;
+    });
+
   return (
     <div className="track-list" style={{ overflow: 'visible', maxHeight: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -57,52 +65,47 @@ export default function TrackList({
           <div className="col-album">Album</div>
         </div>
       )}
-      {(selectedPlaylist ? selectedPlaylist.tracks : tracks)
-        .filter(track => {
-          if (selectedAlbum) return track.album?.id === selectedAlbum.id;
-          if (selectedArtist) return track.album?.artist?.id === selectedArtist.id;
-          return true;
-        })
-        .map((track) => {
-          const index = tracks.findIndex(t => t.id === track.id);
-          const artUrl = albumArtUrlMap[track.id] || logoSvg;
-          const menuBtn = (
-            <div
-              className="track-menu-wrapper"
-              style={{ position: 'relative', marginLeft: 8 }}
+      {filteredTracks.map((track, i) => {
+        const index = i;
+        const artUrl = albumArtUrlMap[track.id] || logoSvg;
+        const menuBtn = (
+          <div
+            className="track-menu-wrapper"
+            style={{ position: 'relative', marginLeft: 8 }}
+          >
+            <button
+              className="track-menu-btn"
+              title="Track options"
+              tabIndex={0}
+              onClick={e => {
+                e.stopPropagation();
+                setTrackMenuOpen(trackMenuOpen === track.id ? null : track.id);
+              }}
             >
-              <button
-                className="track-menu-btn"
-                title="Track options"
-                tabIndex={0}
-                onClick={e => {
-                  e.stopPropagation();
-                  setTrackMenuOpen(trackMenuOpen === track.id ? null : track.id);
-                }}
-              >
-                &#9776;
-              </button>
-              {trackMenuOpen === track.id && (
-                <div className="track-menu-dropdown" onClick={e => e.stopPropagation()}>
-                  <button className="track-menu-item" onClick={() => { setTrackMenuOpen(null); openEditTrack(track); }}>Edit</button>
-                </div>
-              )}
-            </div>
-          );
-          return (
-            <TrackItem
-              key={track.id}
-              track={track}
-              index={index}
-              isMobile={isMobile}
-              currentTrackIndex={currentTrackIndex}
-              playTrack={playTrack}
-              artUrl={artUrl}
-              logoSvg={logoSvg}
-              menuBtn={menuBtn}
-            />
-          );
-        })}
+              &#9776;
+            </button>
+            {trackMenuOpen === track.id && (
+              <div className="track-menu-dropdown" onClick={e => e.stopPropagation()}>
+                <button className="track-menu-item" onClick={() => { setTrackMenuOpen(null); openEditTrack(track); }}>Edit</button>
+              </div>
+            )}
+          </div>
+        );
+        return (
+          <TrackItem
+            key={track.id}
+            track={track}
+            index={index}
+            filteredTracks={filteredTracks}
+            isMobile={isMobile}
+            currentTrackIndex={currentTrackIndex}
+            playTrack={playTrack}
+            artUrl={artUrl}
+            logoSvg={logoSvg}
+            menuBtn={menuBtn}
+          />
+        );
+      })}
     </div>
   );
 }

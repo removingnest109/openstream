@@ -1,6 +1,7 @@
 export default function TrackItem({
   track,
   index,
+  filteredTracks,
   isMobile,
   currentTrackIndex,
   playTrack,
@@ -13,7 +14,7 @@ export default function TrackItem({
       <div
         key={track.id}
         className={`track-item mobile ${currentTrackIndex === index ? 'active' : ''}`}
-        onClick={() => playTrack(index)}
+        onClick={() => playTrack(index, filteredTracks)}
         style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #ccc' }}
       >
         <div className="album-art-wrapper" style={{ width: 48, height: 48, marginRight: 12 }}>
@@ -37,7 +38,7 @@ export default function TrackItem({
       <div
         key={track.id}
         className={`track-item ${currentTrackIndex === index ? 'active' : ''}`}
-        onClick={() => playTrack(index)}
+        onClick={() => playTrack(index, filteredTracks)}
       >
         <div className="album-art-wrapper">
           <img
