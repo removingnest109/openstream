@@ -16,10 +16,11 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 ## Features
 
 - Automatic music library scanning and ingestion
+- Web UI for managing and accessing the server
 - Metadata extraction, including embedded album art
+- Metadata editor for tracks
 - REST API for tracks, albums, playlists, and artists
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
-- Web UI for managing and accessing the server - included with server
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
 
 ## Requirements
