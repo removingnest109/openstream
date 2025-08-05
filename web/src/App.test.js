@@ -54,6 +54,9 @@ describe('App', () => {
 
   test('renders sidebar and default library view', async () => {
     render(<App />);
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
     expect(screen.getByTitle(/Library/i)).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText(/Test Track/i)).toBeInTheDocument();
@@ -62,6 +65,9 @@ describe('App', () => {
 
   test('navigates to albums view', async () => {
     render(<App />);
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
     const albumsBtn = screen.getByTitle(/Albums/i);
     fireEvent.click(albumsBtn);
     expect(screen.getByText(/Albums/i)).toBeInTheDocument();
@@ -69,6 +75,9 @@ describe('App', () => {
 
   test('navigates to artists view', async () => {
     render(<App />);
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
     const artistsBtn = screen.getByTitle(/Artists/i);
     fireEvent.click(artistsBtn);
     expect(screen.getByText(/Artists/i)).toBeInTheDocument();
@@ -76,6 +85,9 @@ describe('App', () => {
 
   test('navigates to playlists view', async () => {
     render(<App />);
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
     const playlistsBtn = screen.getByTitle(/Playlists/i);
     fireEvent.click(playlistsBtn);
     expect(screen.getByText(/Playlists/i)).toBeInTheDocument();
@@ -86,6 +98,9 @@ describe('App', () => {
 
   test('navigates to settings view', async () => {
     render(<App />);
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
     const settingsBtn = screen.getByTitle(/Settings/i);
     fireEvent.click(settingsBtn);
     expect(screen.getByText(/Settings/i)).toBeInTheDocument();
@@ -139,9 +154,15 @@ describe('App', () => {
 
   test('sidebar toggle button works', async () => {
     render(<App />);
-    const toggleBtn = screen.getByTitle(/Hide Sidebar/i);
-    fireEvent.click(toggleBtn);
-    // Sidebar should be hidden, so Library nav button is not visible
+    // Sidebar is closed by default, open it first
+    const showSidebarBtn = screen.getByTitle(/Show Sidebar/i);
+    fireEvent.click(showSidebarBtn);
+    // Sidebar should now be open, Library nav button visible
+    expect(screen.getByTitle(/Library/i)).toBeInTheDocument();
+    // Now hide the sidebar
+    const hideSidebarBtn = screen.getByTitle(/Hide Sidebar/i);
+    fireEvent.click(hideSidebarBtn);
+    // Sidebar should be hidden, Library nav button not visible
     expect(screen.queryByTitle(/Library/i)).not.toBeInTheDocument();
   });
 });
