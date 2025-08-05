@@ -9,7 +9,7 @@ export default function TrackList({
   selectedAlbum,
   selectedArtist,
   isMobile,
-  currentTrackIndex,
+  currentTrackId,
   playTrack,
   albumArtUrlMap,
   logoSvg,
@@ -105,7 +105,6 @@ export default function TrackList({
           </div>
         )}
         {filteredTracks.map((track, i) => {
-          const index = i;
           const artUrl = albumArtUrlMap[track.id] || logoSvg;
           const menuBtn = (
             <div
@@ -135,10 +134,9 @@ export default function TrackList({
             <TrackItem
               key={track.id}
               track={track}
-              index={index}
               filteredTracks={filteredTracks}
               isMobile={isMobile}
-              currentTrackIndex={currentTrackIndex}
+              currentTrackId={currentTrackId}
               playTrack={playTrack}
               artUrl={artUrl}
               logoSvg={logoSvg}

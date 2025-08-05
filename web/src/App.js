@@ -16,7 +16,7 @@ function App() {
   const [playbackTracks, setPlaybackTracks] = useState([]); // locked filtered list for playback
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(null);
+  const [currentTrackId, setCurrentTrackId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -148,16 +148,16 @@ function App() {
 
   useEffect(() => {
     if (audioRef.current) audioRef.current[isPlaying ? 'play' : 'pause']();
-  }, [isPlaying, currentTrackIndex]);
+  }, [isPlaying, currentTrackId]);
 
-  // Accepts index and filteredTracks (the list being shown when play is clicked)
-  const playTrack = (index, filteredTracks = null) => {
+  // Accepts trackId and filteredTracks (the list being shown when play is clicked)
+  const playTrack = (trackId, filteredTracks = null) => {
     if (filteredTracks) {
       setPlaybackTracks(filteredTracks);
     } else if (!playbackTracks.length) {
       setPlaybackTracks(tracks);
     }
-    setCurrentTrackIndex(index);
+    setCurrentTrackId(trackId);
     setCurrentTime(0);
     setIsPlaying(true);
   };
@@ -168,25 +168,27 @@ function App() {
   const nextTrack = () => {
     const list = playbackTracks.length ? playbackTracks : tracks;
     if (!list.length) return;
+    const currentIndex = list.findIndex(t => t.id === currentTrackId);
     if (shuffle) {
-      shuffleHistory.current.push(currentTrackIndex);
-      const available = list.map((_, i) => i).filter(i => i !== currentTrackIndex);
-      const randomIndex = available[Math.floor(Math.random() * available.length)];
-      playTrack(randomIndex, list);
+      shuffleHistory.current.push(currentTrackId);
+      const available = list.filter((_, i) => i !== currentIndex);
+      const randomTrack = available[Math.floor(Math.random() * available.length)];
+      playTrack(randomTrack.id, list);
     } else {
-      const nextIndex = (currentTrackIndex + 1) % list.length;
-      playTrack(nextIndex, list);
+      const nextIndex = (currentIndex + 1) % list.length;
+      playTrack(list[nextIndex].id, list);
     }
   };
   const prevTrack = () => {
     const list = playbackTracks.length ? playbackTracks : tracks;
     if (!list.length) return;
+    const currentIndex = list.findIndex(t => t.id === currentTrackId);
     if (shuffle && shuffleHistory.current.length > 0) {
-      const prevIndex = shuffleHistory.current.pop();
-      playTrack(prevIndex, list);
+      const prevId = shuffleHistory.current.pop();
+      playTrack(prevId, list);
     } else {
-      const prevIndex = (currentTrackIndex - 1 + list.length) % list.length;
-      playTrack(prevIndex, list);
+      const prevIndex = (currentIndex - 1 + list.length) % list.length;
+      playTrack(list[prevIndex].id, list);
     }
   };
   const handleSeek = (e) => {
@@ -224,7 +226,7 @@ function App() {
     const s = Math.floor(t % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
-  const currentTrack = (playbackTracks.length ? playbackTracks : tracks)[currentTrackIndex];
+  const currentTrack = (playbackTracks.length ? playbackTracks : tracks).find(t => t.id === currentTrackId);
   
   return (
     <div className="app-container" style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -269,8 +271,8 @@ function App() {
             selectedAlbum={selectedAlbum}
             selectedArtist={selectedArtist}
             isMobile={isMobile}
-            currentTrackIndex={currentTrackIndex}
-            playTrack={(index, filteredTracks) => playTrack(index, filteredTracks)}
+            currentTrackId={currentTrackId}
+            playTrack={(trackId, filteredTracks) => playTrack(trackId, filteredTracks)}
             albumArtUrlMap={albumArtUrlMap}
             logoSvg={logoSvg}
             trackMenuOpen={trackMenuOpen}
