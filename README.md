@@ -3,12 +3,8 @@
 <p align="center">
 <img alt="Openstream" src="https://raw.githubusercontent.com/removingnest109/openstream/main/web/src/logo.svg" height="120"/>
 <br/>
-<a href="https://github.com/removingnest109/openstream">
 <img alt="MIT License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/>
-</a>
-<a href="https://hub.docker.com/r/removingnest109/openstream">
 <img alt="Docker Pull Count" src="https://img.shields.io/docker/pulls/removingnest109/openstream.svg"/>
-</a>
 <br/>
 <a href="https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml">
 <img alt="Docker Image Build" src="https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg"/>
