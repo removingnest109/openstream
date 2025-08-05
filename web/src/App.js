@@ -30,7 +30,7 @@ function App() {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [primaryColor, setPrimaryColor] = useState(getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#e5e743');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [trackMenuOpen, setTrackMenuOpen] = useState(null); // track.id or null
   const [editingTrack, setEditingTrack] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', album: '', artist: '' });
