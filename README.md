@@ -1,15 +1,31 @@
 # Openstream
 
-[![Docker Image](https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg)](https://hub.docker.com/r/removingnest109/openstream)
-![Backend Tests](https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml/badge.svg)
-![Frontend Tests](https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml/badge.svg)
-[![Docker Pulls](https://img.shields.io/docker/pulls/removingnest109/openstream)](https://hub.docker.com/r/removingnest109/openstream)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![C#](https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=fff)
-![React](https://img.shields.io/badge/React-%2320232a.svg?logo=react&logoColor=%2361DAFB)
-![Microsoft SQL Server](https://custom-icon-badges.demolab.com/badge/Microsoft%20SQL%20Server-CC2927?logo=mssqlserver-white&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff)
+<p align="center">
+<img alt="Openstream" src="https://raw.githubusercontent.com/removingnest109/openstream/main/web/src/logo.svg" height="120"/>
+<br/>
+<a href="https://github.com/removingnest109/openstream">
+<img alt="MIT License" src="https://img.shields.io/badge/License-MIT-yellow.svg"/>
+</a>
+<a href="https://hub.docker.com/r/removingnest109/openstream">
+<img alt="Docker Pull Count" src="https://img.shields.io/docker/pulls/removingnest109/openstream.svg"/>
+</a>
+<br/>
+<a href="https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml">
+<img alt="Docker Image Build" src="https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg"/>
+</a>
+<a href="https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml">
+<img alt="Backend Tests" src="https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml/badge.svg"/>
+</a>
+<a href="https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml">
+<img alt="Frontend Tests" src="https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml/badge.svg"/>
+</a>
+<br/>
+<img alt="C#" src="https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white"/>
+<img alt=".NET" src="https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=fff"/>
+<img alt="React" src="https://img.shields.io/badge/React-%2320232a.svg?logo=react&logoColor=%2361DAFB"/>
+<img alt="Microsoft SQL Server" src="https://custom-icon-badges.demolab.com/badge/Microsoft%20SQL%20Server-CC2927?logo=mssqlserver-white&logoColor=white"/>
+<img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff"/>
+</p>
 
 Openstream is a self-hosted music library and streaming server. It scans a user defined music directory, ingests metadata into a SQL database, and provides a REST API and Web UI for browsing and streaming your music collection.
 
