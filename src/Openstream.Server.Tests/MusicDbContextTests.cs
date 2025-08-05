@@ -8,37 +8,41 @@ using System.Linq;
 
 public class MusicDbContextTests
 {
-    [Fact(Skip = "EF Core InMemory does not enforce unique constraints")]
+    [Fact]
     public async Task Artist_Name_IsUnique()
     {
         var options = new DbContextOptionsBuilder<MusicDbContext>()
-            .UseInMemoryDatabase(databaseName: "ArtistUniqueTestDb")
+            .UseSqlite("Filename=:memory:")
             .Options;
         using var db = new MusicDbContext(options);
+        db.Database.OpenConnection();
+        db.Database.EnsureCreated();
         db.Artists.Add(new Artist { Name = "A" });
         db.SaveChanges();
         db.Artists.Add(new Artist { Name = "A" });
+        await Assert.ThrowsAsync<DbUpdateException>(async () => await db.SaveChangesAsync());
         var count = await db.Artists.CountAsync(a => a.Name == "A");
-        Assert.Equal(2, count); // Document limitation
-        return;
+        Assert.Equal(1, count); // Only one unique name allowed
     }
 
-    [Fact(Skip = "EF Core InMemory does not enforce unique constraints")]
+    [Fact]
     public async Task Album_Title_ArtistId_IsUnique()
     {
         var options = new DbContextOptionsBuilder<MusicDbContext>()
-            .UseInMemoryDatabase(databaseName: "AlbumUniqueTestDb")
+            .UseSqlite("Filename=:memory:")
             .Options;
         using var db = new MusicDbContext(options);
+        db.Database.OpenConnection();
+        db.Database.EnsureCreated();
         var artist = new Artist { Name = "A" };
         db.Artists.Add(artist);
         db.SaveChanges();
         db.Albums.Add(new Album { Title = "T", ArtistId = artist.Id });
         db.SaveChanges();
         db.Albums.Add(new Album { Title = "T", ArtistId = artist.Id });
+        await Assert.ThrowsAsync<DbUpdateException>(async () => await db.SaveChangesAsync());
         var count = await db.Albums.CountAsync(a => a.Title == "T" && a.ArtistId == artist.Id);
-        Assert.Equal(2, count); // Document limitation
-        return;
+        Assert.Equal(1, count); // Only one unique title per artist
     }
 
     [Fact]

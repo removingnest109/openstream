@@ -24,3 +24,5 @@ music/
 /src/Openstream.Server/wwwroot
 /src/Openstream.Server.Tests/bin
 /src/Openstream.Server.Tests/obj
+/src/Openstream.Server.Tests/coverage-report
+/src/Openstream.Server.Tests/TestResults

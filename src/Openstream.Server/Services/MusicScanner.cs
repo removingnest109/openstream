@@ -10,7 +10,7 @@ public class MusicScanner
         _musicLibraryPath = musicLibraryPath;
     }
 
-    public Track? ProcessFile(string filePath, int? albumId = null)
+    public virtual Track? ProcessFile(string filePath, int? albumId = null)
     {
         if (!System.IO.File.Exists(filePath))
         {
