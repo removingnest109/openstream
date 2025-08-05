@@ -264,6 +264,7 @@ function App() {
         {view === 'library' && (
           <TrackList
             tracks={tracks}
+            setTracks={setTracks}
             selectedPlaylist={selectedPlaylist}
             selectedAlbum={selectedAlbum}
             selectedArtist={selectedArtist}

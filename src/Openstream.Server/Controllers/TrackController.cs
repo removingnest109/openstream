@@ -152,4 +152,32 @@ public class TracksController : ControllerBase
             return BadRequest(result.ErrorMessage);
         return Ok(new { status = "Track metadata updated successfully." });
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTrack(Guid id, [FromQuery] bool deleteFile = false)
+    {
+        var track = await _db.Tracks.FindAsync(id);
+        if (track == null)
+            return NotFound("Track not found.");
+
+        // Remove from DB
+        _db.Tracks.Remove(track);
+        await _db.SaveChangesAsync();
+
+        // Optionally delete file
+        if (deleteFile && !string.IsNullOrWhiteSpace(track.Path) && System.IO.File.Exists(track.Path))
+        {
+            try
+            {
+                System.IO.File.Delete(track.Path);
+            }
+            catch (Exception ex)
+            {
+                // Log error, but still return success for DB delete
+                return Ok(new { status = "Track deleted from DB, but failed to delete file.", error = ex.Message });
+            }
+        }
+
+        return Ok(new { status = "Track deleted successfully." });
+    }
 }
