@@ -16,17 +16,15 @@ Openstream is a self-hosted music library and streaming server. It scans a user 
 ## Features
 
 - Automatic music library scanning and ingestion
+- Metadata extraction, including embedded album art
 - REST API for tracks, albums, playlists, and artists
 - Streaming support for common audio formats (mp3, flac, wav, ogg, m4a)
 - Web UI for managing and accessing the server - included with server
 - Mobile app for iOS and Android (WIP) - [openstream_player](https://github.com/removingnest109/openstream_player)
-- Album art support
 
 ## Requirements
 
-- .NET 8 SDK - REQUIRED
-- SQL Server (local or Docker) - REQUIRED
-- Bash (for scripts) - REQUIRED
+- Docker Compose (Includes all dependencies by default)
 
 OR
 
@@ -35,7 +33,10 @@ OR
 
 OR
 
-- Docker Compose (Includes all dependencies by default)
+- .NET 8 SDK
+- NPM
+- SQL Server (local or Docker)
+- Bash (for scripts)
 
 ## Getting Started
 
@@ -54,25 +55,7 @@ Music files can also be uploaded to the running server.
 
 ### 3. Run the Server
 
-#### Using .NET (Recommended for Development)
-
-Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
-
-```bash
-./start-server.sh
-```
-
-Options:
-
-- `-p` SQL password (default: YourStrong!Passw0rd)
-- `-u` SQL username (default: sa)
-- `-s` SQL server address (default: localhost)
-- `-m` Music library path (default: ./music)
-- `--nobuild` Disable build steps and use existing dll and wwwroot
-
-To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
-
-#### Using Docker Compose (Easiest)
+#### Using Docker Compose
 
 Edit `docker-compose.yml` to set your SQL Server connection string if needed.
 
@@ -96,6 +79,24 @@ docker run -p 9090:9090 -v $(pwd)/music:/music removingnest109/openstream:latest
 ```
 
 With the prebuilt Docker Image, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
+
+#### Using .NET
+
+Edit `start-server.sh` or use environment variables to set your SQL Server connection string if needed.
+
+```bash
+./start-server.sh
+```
+
+Options:
+
+- `-p` SQL password (default: YourStrong!Passw0rd)
+- `-u` SQL username (default: sa)
+- `-s` SQL server address (default: localhost)
+- `-m` Music library path (default: ./music)
+- `--nobuild` Disable build steps and use existing dll and wwwroot
+
+To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
 ## Environment Variables
 
