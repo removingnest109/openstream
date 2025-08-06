@@ -22,7 +22,8 @@ export default function PlayerBar({
   setVolume,
   handleSeek,
   setCurrentTime,
-  setDuration
+  setDuration,
+  albumArtUrl
 }) {
   if (!currentTrack) return null;
   return (
@@ -37,12 +38,19 @@ export default function PlayerBar({
       />
       {isMobile ? (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8, width: '100%' }}>
-            <div className="title" style={{ fontWeight: 'bold', fontSize: 18, textAlign: 'center', marginBottom: 2 }}>
-              {currentTrack.title || currentTrack.id}
-            </div>
-            <div className="meta" style={{ fontSize: 14, color: '#888', textAlign: 'center' }}>
-              {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: 8, width: '100%' }}>
+            <img
+              src={albumArtUrl}
+              alt="Album Art"
+              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, marginRight: 12, background: '#eee' }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div className="title" style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 2 }}>
+                {currentTrack.title || currentTrack.id}
+              </div>
+              <div className="meta" style={{ fontSize: 14, color: '#888' }}>
+                {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+              </div>
             </div>
           </div>
           <div className="player-controls" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
@@ -73,53 +81,73 @@ export default function PlayerBar({
         </>
       ) : (
         <>
-          <div className="track-info">
-            <div className="title">{currentTrack.title || currentTrack.id}</div>
-            <div className="meta">
-              {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', minHeight: 80 }}>
+            {/* Left: Album art and track info */}
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
+              <img
+                src={albumArtUrl}
+                alt="Album Art"
+                style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8, marginRight: 16, background: '#eee' }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+                <div className="title" style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
+                  {currentTrack.title || currentTrack.id}
+                </div>
+                <div className="meta" style={{ fontSize: 14, color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 220 }}>
+                  {currentTrack.album?.artist?.name || 'Unknown Artist'} — {currentTrack.album?.title || 'Unknown Album'}
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="player-controls">
-            <button className={`shuffle ${shuffle ? 'active' : ''}`} onClick={toggleShuffle}>
-              <FaRandom />
-            </button>
-            <button onClick={prevTrack}><FaStepBackward /></button>
-            <button onClick={() => setIsPlaying(!isPlaying)}>
-              {isPlaying ? <FaPause /> : <FaPlay />}
-            </button>
-            <button onClick={nextTrack}><FaStepForward /></button>
-            <button className={`loop ${loop ? 'active' : ''}`} onClick={() => setLoop(!loop)}>
-              <FaRedo />
-            </button>
-          </div>
-          <div className="seek-bar">
-            <span className="time">{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min={0}
-              max={duration || 0}
-              value={currentTime}
-              step={0.1}
-              onChange={handleSeek}
-            />
-            <span className="time">{formatTime(duration)}</span>
-          </div>
-          <div className="volume-control">
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="mute-button"
-              title={isMuted ? 'Unmute' : 'Mute'}
-            >
-              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-            />
+            {/* Center: Seek bar and Play controls - absolutely centered */}
+            <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: 0, zIndex: 2 }}>
+              <div className="player-controls" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <button className={`shuffle ${shuffle ? 'active' : ''}`} onClick={toggleShuffle}>
+                  <FaRandom />
+                </button>
+                <button onClick={prevTrack}><FaStepBackward /></button>
+                <button onClick={() => setIsPlaying(!isPlaying)} style={{ margin: '0 16px' }}>
+                  {isPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+                <button onClick={nextTrack}><FaStepForward /></button>
+                <button className={`loop ${loop ? 'active' : ''}`} onClick={() => setLoop(!loop)}>
+                  <FaRedo />
+                </button>
+              </div>
+              <div className="seek-bar" style={{ marginBottom: 8 }}>
+                <span className="time">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  value={currentTime}
+                  step={0.1}
+                  onChange={handleSeek}
+                  style={{ verticalAlign: 'middle', margin: '0 8px', width: 160 }}
+                />
+                <span className="time">{formatTime(duration)}</span>
+              </div>
+            </div>
+            {/* Right: volume */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: 32, marginRight: 8 }}>
+              <div className="volume-control">
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="mute-button"
+                  title={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  style={{ verticalAlign: 'middle', marginLeft: 8, width: 80 }}
+                />
+              </div>
+            </div>
           </div>
         </>
       )}

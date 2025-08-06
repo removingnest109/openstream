@@ -11,7 +11,7 @@ import SettingsForm from './components/SettingsForm';
 import PlayerBar from './components/PlayerBar';
 
 function App() {
-  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 800px)').matches;
   const [tracks, setTracks] = useState([]);
   const [playbackTracks, setPlaybackTracks] = useState([]); // locked filtered list for playback
   const [playlists, setPlaylists] = useState([]);
@@ -227,7 +227,9 @@ function App() {
     return `${m}:${s}`;
   };
   const currentTrack = (playbackTracks.length ? playbackTracks : tracks).find(t => t.id === currentTrackId);
-  
+  // Get album art for current track
+  const albumArtUrl = currentTrack ? (albumArtUrlMap[currentTrack.id] || logoSvg) : logoSvg;
+
   return (
     <div className="app-container" style={{ height: '100dvh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <button
@@ -368,6 +370,7 @@ function App() {
         handleSeek={handleSeek}
         setCurrentTime={setCurrentTime}
         setDuration={setDuration}
+        albumArtUrl={albumArtUrl}
       />
     </div>
   );
