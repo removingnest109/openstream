@@ -1,5 +1,7 @@
 # openstream-lite
 
+![WebUI](screenshots/openstream.png)
+
 Openstream-lite is a lightweight, portable Go rewrite of the self-hosted music library and streaming server Openstream. It scans a user defined music directory, ingests metadata into a SQLite database, and provides a REST API and Web UI for browsing and streaming your music collection.
 
 ## Features
