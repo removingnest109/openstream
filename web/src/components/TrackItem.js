@@ -1,3 +1,11 @@
+const getFileType = (trackPath) => {
+  if (!trackPath || typeof trackPath !== 'string') return 'unknown';
+  const name = trackPath.split('/').pop() || '';
+  const dotIndex = name.lastIndexOf('.');
+  if (dotIndex <= 0 || dotIndex === name.length - 1) return 'unknown';
+  return name.slice(dotIndex + 1).toLowerCase();
+};
+
 export default function TrackItem({
   track,
   filteredTracks,
@@ -8,6 +16,8 @@ export default function TrackItem({
   logoSvg,
   menuBtn
 }) {
+  const fileType = getFileType(track.path);
+
   if (isMobile) {
     return (
       <div
@@ -50,6 +60,7 @@ export default function TrackItem({
         <div className="col-title">{track.title || track.id}</div>
         <div className="col-artist">{track.album?.artist?.name || 'Unknown Artist'}</div>
         <div className="col-album">{track.album?.title || 'Unknown Album'}</div>
+        <div className="col-type">{fileType}</div>
         {menuBtn}
       </div>
     );

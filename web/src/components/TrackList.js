@@ -102,6 +102,7 @@ export default function TrackList({
             <div className="col-title">Title</div>
             <div className="col-artist">Artist</div>
             <div className="col-album">Album</div>
+            <div className="col-type">Type</div>
           </div>
         )}
         {filteredTracks.map((track, i) => {

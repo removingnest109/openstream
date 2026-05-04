@@ -1,0 +1,18 @@
+[Unit]
+Description=Openstream Lite Music Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+Environment=PORT=80
+Environment=MUSIC_LIBRARY_PATH=/media/music
+Environment=DB_PATH=/media/music/openstream.db
+ExecStart=/bin/openstream
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
