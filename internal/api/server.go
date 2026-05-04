@@ -1,16 +1,19 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -26,15 +29,17 @@ type Server struct {
 	store         *db.Store
 	ingestService *ingest.Service
 	staticDir     string
+	embeddedUIFS  fs.FS
 	maxUploadSize int64
 	logger        *slog.Logger
 }
 
-func NewServer(store *db.Store, ingestService *ingest.Service, staticDir string, maxUploadSizeMB int64, logger *slog.Logger) *Server {
+func NewServer(store *db.Store, ingestService *ingest.Service, staticDir string, embeddedUIFS fs.FS, maxUploadSizeMB int64, logger *slog.Logger) *Server {
 	return &Server{
 		store:         store,
 		ingestService: ingestService,
 		staticDir:     staticDir,
+		embeddedUIFS:  embeddedUIFS,
 		maxUploadSize: maxUploadSizeMB * 1024 * 1024,
 		logger:        logger,
 	}
@@ -75,20 +80,69 @@ func (s *Server) spaFallback(api http.Handler) http.Handler {
 			return
 		}
 
-		index := filepath.Join(s.staticDir, "index.html")
-		candidate := filepath.Join(s.staticDir, filepath.Clean(r.URL.Path))
-		if stat, err := os.Stat(candidate); err == nil && !stat.IsDir() {
-			http.ServeFile(w, r, candidate)
-			return
+		assetPath := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
+		if assetPath != "" && assetPath != "." {
+			if s.serveAsset(w, r, assetPath) {
+				return
+			}
 		}
 
-		if _, err := os.Stat(index); err == nil {
-			http.ServeFile(w, r, index)
+		if s.serveAsset(w, r, "index.html") {
 			return
 		}
 
 		http.NotFound(w, r)
 	})
+}
+
+func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request, assetPath string) bool {
+	for _, source := range s.assetSources() {
+		assetFile, err := source.fsys.Open(assetPath)
+		if err != nil {
+			continue
+		}
+		defer assetFile.Close()
+
+		info, err := assetFile.Stat()
+		if err != nil || info.IsDir() {
+			continue
+		}
+
+		if reader, ok := assetFile.(io.ReadSeeker); ok {
+			http.ServeContent(w, r, info.Name(), info.ModTime(), reader)
+			return true
+		}
+
+		data, err := io.ReadAll(assetFile)
+		if err != nil {
+			continue
+		}
+		http.ServeContent(w, r, info.Name(), info.ModTime(), bytes.NewReader(data))
+		return true
+	}
+
+	return false
+}
+
+type staticAssetSource struct {
+	name string
+	fsys fs.FS
+}
+
+func (s *Server) assetSources() []staticAssetSource {
+	sources := make([]staticAssetSource, 0, 2)
+
+	if s.staticDir != "" {
+		if info, err := os.Stat(s.staticDir); err == nil && info.IsDir() {
+			sources = append(sources, staticAssetSource{name: "disk", fsys: os.DirFS(s.staticDir)})
+		}
+	}
+
+	if s.embeddedUIFS != nil {
+		sources = append(sources, staticAssetSource{name: "embedded", fsys: s.embeddedUIFS})
+	}
+
+	return sources
 }
 
 func (s *Server) getTracks(w http.ResponseWriter, r *http.Request) {

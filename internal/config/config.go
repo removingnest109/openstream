@@ -23,8 +23,8 @@ func Load() Config {
 		Port:            envInt("PORT", 9090),
 		DBPath:          env("DB_PATH", filepath.Join(cwd, "openstream.db")),
 		MusicLibrary:    env("MUSIC_LIBRARY_PATH", filepath.Join(cwd, "music")),
-		StaticDir:       env("STATIC_DIR", filepath.Join(cwd, "..", "web", "build")),
-		LogoFallback:    env("LOGO_FALLBACK_PATH", filepath.Join(cwd, "..", "web", "src", "logo.svg")),
+		StaticDir:       env("STATIC_DIR", ""),
+		LogoFallback:    env("LOGO_FALLBACK_PATH", ""),
 		ScanInterval:    envDuration("SCAN_INTERVAL", 5*time.Minute),
 		MaxUploadSizeMB: int64(envInt("MAX_UPLOAD_MB", 1024)),
 	}

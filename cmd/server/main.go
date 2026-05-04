@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 	"github.com/removingnest109/openstream/go-openstream/internal/db"
 	"github.com/removingnest109/openstream/go-openstream/internal/ingest"
 	"github.com/removingnest109/openstream/go-openstream/internal/worker"
+	webassets "github.com/removingnest109/openstream/go-openstream/web"
 )
 
 func main() {
@@ -34,7 +36,15 @@ func main() {
 
 	ingestService := ingest.NewService(store, cfg.MusicLibrary, cfg.LogoFallback, logger)
 	workerSvc := worker.NewScannerWorker(ingestService, cfg.ScanInterval, logger)
-	server := api.NewServer(store, ingestService, cfg.StaticDir, cfg.MaxUploadSizeMB, logger)
+
+	var embeddedUI fs.FS
+	if assets, err := webassets.ReactBuildFS(); err != nil {
+		logger.Warn("embedded web assets unavailable", "err", err)
+	} else {
+		embeddedUI = assets
+	}
+
+	server := api.NewServer(store, ingestService, cfg.StaticDir, embeddedUI, cfg.MaxUploadSizeMB, logger)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
