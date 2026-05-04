@@ -113,18 +113,6 @@ Options:
 
 To run with .NET, you will need a separate instance of mssql-server running and accessible on the host machine port 1433.
 
-## Environment Variables
-
-You can configure Openstream using the following environment variables:
-
-| Variable                | Description                        | Default                        |
-|-------------------------|------------------------------------|---------------------------------|
-| `ConnectionStrings__DefaultConnection` | SQL Server connection string         | See `appsettings.json`          |
-| `Ingestion__MusicLibraryPath`          | Path to music library                | `/music`                       |
-| `ASPNETCORE_ENVIRONMENT`               | ASP.NET Core environment             | `Production`                   |
-
-You can also use command-line arguments as described above.
-
 ## API Endpoints
 
 ### Tracks
