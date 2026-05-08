@@ -38,6 +38,8 @@ fi
 if [ "$NOBUILD" != true ]; then
   # Build React frontend and copy to server wwwroot/dist
   echo "[INFO] Building React frontend..."
+  if [ ! -d "web/" ]; then
+    git submodule update --init --recursive
   cd web
   npm install
   npm run build
