@@ -1,6 +1,4 @@
 bin
 music
 *.db
-web/build
-web/dist
-web/node_modules
+web
