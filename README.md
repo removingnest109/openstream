@@ -43,6 +43,8 @@ The binary serves the React app directly from embedded assets by default (no lau
 git clone example.git
 cd openstream-lite
 
+git submodule update --init --recursive
+
 go mod tidy
 go build -o ./bin/openstream ./cmd/server
 ```
