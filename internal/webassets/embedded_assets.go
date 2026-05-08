@@ -5,9 +5,9 @@ import (
 	"io/fs"
 )
 
-//go:embed all:build
+//go:embed all:frontend/build
 var embeddedFiles embed.FS
 
 func ReactBuildFS() (fs.FS, error) {
-	return fs.Sub(embeddedFiles, "build")
+	return fs.Sub(embeddedFiles, "frontend/build")
 }

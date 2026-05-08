@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/removingnest109/openstream/go-openstream/internal/ingest"
+	"github.com/removingnest109/openstream-lite/internal/ingest"
 )
 
 type ScannerWorker struct {

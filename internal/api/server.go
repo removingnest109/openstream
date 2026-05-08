@@ -21,8 +21,8 @@ import (
 
 	"github.com/bogem/id3v2/v2"
 	"github.com/go-chi/chi/v5"
-	"github.com/removingnest109/openstream/go-openstream/internal/db"
-	"github.com/removingnest109/openstream/go-openstream/internal/ingest"
+	"github.com/removingnest109/openstream-lite/internal/db"
+	"github.com/removingnest109/openstream-lite/internal/ingest"
 )
 
 type Server struct {

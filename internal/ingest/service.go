@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/dhowden/tag"
-	"github.com/removingnest109/openstream/go-openstream/internal/db"
+	"github.com/removingnest109/openstream-lite/internal/db"
 )
 
 var supportedExtensions = map[string]struct{}{

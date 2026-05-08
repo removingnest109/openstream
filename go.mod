@@ -1,4 +1,4 @@
-module github.com/removingnest109/openstream/go-openstream
+module github.com/removingnest109/openstream-lite
 
 go 1.26
 

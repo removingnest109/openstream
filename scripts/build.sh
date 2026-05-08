@@ -8,9 +8,9 @@ TARGET="${1:-native}"
 
 mkdir -p "$OUT_DIR"
 
-if [[ ! -f "$ROOT_DIR/web/build/index.html" ]]; then
-	echo "Missing embedded web assets in web/build." >&2
-	echo "Run 'cd web && npm install && npm run build' first." >&2
+if [[ ! -f "$ROOT_DIR/internal/webassets/frontend/build/index.html" ]]; then
+	echo "Missing embedded web assets in internal/webassets/frontend/build." >&2
+	echo "Run 'cd internal/webassets/frontend && npm install && npm run build' first." >&2
 	exit 1
 fi
 

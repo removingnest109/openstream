@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/removingnest109/openstream/go-openstream/internal/api"
-	"github.com/removingnest109/openstream/go-openstream/internal/config"
-	"github.com/removingnest109/openstream/go-openstream/internal/db"
-	"github.com/removingnest109/openstream/go-openstream/internal/ingest"
-	"github.com/removingnest109/openstream/go-openstream/internal/worker"
-	webassets "github.com/removingnest109/openstream/go-openstream/web"
+	"github.com/removingnest109/openstream-lite/internal/api"
+	"github.com/removingnest109/openstream-lite/internal/config"
+	"github.com/removingnest109/openstream-lite/internal/db"
+	"github.com/removingnest109/openstream-lite/internal/ingest"
+	"github.com/removingnest109/openstream-lite/internal/webassets"
+	"github.com/removingnest109/openstream-lite/internal/worker"
 )
 
 func main() {
