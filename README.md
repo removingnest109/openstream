@@ -49,20 +49,6 @@ go mod tidy
 go build -o ./bin/openstream ./cmd/server
 ```
 
-### When changing the web UI
-
-After any React UI change, rebuild the frontend and then rebuild the Go binary so updated assets are embedded:
-
-```bash
-cd .web
-npm run build
-
-cd ../../..
-go build -o ./bin/openstream ./cmd/server
-```
-
-Then restart `./bin/openstream`.
-
 ### Environment
 
 - `PORT` (default `9090`)
