@@ -1,4 +1,4 @@
-name: Backend Tests
+name: Tests
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - src/**
-      - .github/workflows/backend-tests.yml
+      - .github/workflows/tests.yml
 
 jobs:
   test-backend:
@@ -20,5 +20,5 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Restore dependencies
         run: dotnet restore
-      - name: Run backend tests
+      - name: Run tests
         run: dotnet test
