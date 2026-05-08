@@ -10,10 +10,7 @@
 <img alt="Docker Image Build" src="https://github.com/removingnest109/openstream/actions/workflows/docker-image.yml/badge.svg"/>
 </a>
 <a href="https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml">
-<img alt="Backend Tests" src="https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml/badge.svg"/>
-</a>
-<a href="https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml">
-<img alt="Frontend Tests" src="https://github.com/removingnest109/openstream/actions/workflows/frontend-tests.yml/badge.svg"/>
+<img alt="Tests" src="https://github.com/removingnest109/openstream/actions/workflows/backend-tests.yml/badge.svg"/>
 </a>
 <br/>
 <img alt="C#" src="https://custom-icon-badges.demolab.com/badge/C%23-%23239120.svg?logo=cshrp&logoColor=white"/>
