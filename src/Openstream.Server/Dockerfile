@@ -4,7 +4,7 @@ WORKDIR /src
 
 # Install Node.js (LTS version)
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
+    apt-get install -y nodejs git && \
     node --version && npm --version
 
 # Copy solution and project files
@@ -18,6 +18,8 @@ RUN dotnet restore "Openstream.sln"
 
 # Copy all source files
 COPY . .
+
+RUN git submodule update --init --recursive
 
 # Build React frontend and copy to wwwroot/dist
 WORKDIR /src/web
