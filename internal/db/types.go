@@ -12,6 +12,7 @@ type Album struct {
 	Title        string  `json:"title"`
 	ArtistID     int     `json:"artistId"`
 	Artist       *Artist `json:"artist,omitempty"`
+	Artists      []Artist `json:"artists,omitempty"`
 	Year         *int    `json:"year"`
 	AlbumArtPath *string `json:"albumArtPath"`
 }
@@ -24,6 +25,7 @@ type Track struct {
 	TrackNumber int           `json:"trackNumber"`
 	AlbumID     int           `json:"albumId"`
 	Album       *Album        `json:"album"`
+	Artists     []Artist      `json:"artists,omitempty"`
 	DateAdded   time.Time     `json:"dateAdded"`
 }
 
@@ -40,7 +42,9 @@ type PlaylistCreateInput struct {
 }
 
 type TrackEditInput struct {
-	Title      string `json:"title"`
-	AlbumTitle string `json:"albumTitle"`
-	ArtistName string `json:"artistName"`
+	Title            string   `json:"title"`
+	AlbumTitle       string   `json:"albumTitle"`
+	ArtistName       string   `json:"artistName"`
+	ArtistNames      []string `json:"artistNames"`
+	AlbumArtistNames []string `json:"albumArtistNames"`
 }

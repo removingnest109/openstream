@@ -56,6 +56,7 @@ go build -o ./bin/openstream ./cmd/server
 - `MUSIC_LIBRARY_PATH` (default `./music`)
 - `SCAN_INTERVAL` (default `5m`)
 - `MAX_UPLOAD_MB` (default `1024`)
+- `DISABLE_WEB_UI` (default `false`; set to `true` to serve backend API only)
 
 ### Implemented endpoints
 

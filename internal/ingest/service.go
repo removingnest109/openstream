@@ -157,6 +157,15 @@ func (s *Service) readTrack(path string) (*db.TrackSource, error) {
 	if artistName == "" {
 		artistName = "Unknown Artist"
 	}
+	trackArtists := splitArtistNames(artistName)
+	if len(trackArtists) == 0 {
+		trackArtists = []string{"Unknown Artist"}
+	}
+
+	albumArtists := readAlbumArtists(meta)
+	if len(albumArtists) == 0 {
+		albumArtists = append([]string(nil), trackArtists...)
+	}
 
 	trackNumber, _ := meta.Track()
 	y := meta.Year()
@@ -170,7 +179,7 @@ func (s *Service) readTrack(path string) (*db.TrackSource, error) {
 
 	var albumArtPath *string
 	if picture := meta.Picture(); picture != nil && len(picture.Data) > 0 {
-		artName := s.makeAlbumArtName(albumTitle, artistName)
+		artName := s.makeAlbumArtName(albumTitle, albumArtists)
 		artFullPath := filepath.Join(s.musicDir, "albumart", artName)
 		if _, statErr := os.Stat(artFullPath); errors.Is(statErr, os.ErrNotExist) {
 			if writeErr := os.WriteFile(artFullPath, picture.Data, 0o644); writeErr != nil {
@@ -186,7 +195,8 @@ func (s *Service) readTrack(path string) (*db.TrackSource, error) {
 		DurationTicks: durationTicks,
 		TrackNumber:   trackNumber,
 		AlbumTitle:    albumTitle,
-		ArtistName:    artistName,
+		ArtistNames:   trackArtists,
+		AlbumArtists:  albumArtists,
 		Year:          year,
 		AlbumArtPath:  albumArtPath,
 	}, nil
@@ -245,9 +255,69 @@ func (s *Service) SaveAlbumArt(ctx context.Context, albumID int, reader io.Reade
 	return name, nil
 }
 
-func (s *Service) makeAlbumArtName(albumTitle, artistName string) string {
-	hash := sha1.Sum([]byte(strings.ToLower(strings.TrimSpace(albumTitle + "|" + artistName))))
+func (s *Service) makeAlbumArtName(albumTitle string, albumArtists []string) string {
+	artists := strings.Join(splitArtistNames(strings.Join(albumArtists, "|")), "|")
+	hash := sha1.Sum([]byte(strings.ToLower(strings.TrimSpace(albumTitle + "|" + artists))))
 	return hex.EncodeToString(hash[:]) + ".jpg"
+}
+
+func readAlbumArtists(meta tag.Metadata) []string {
+	if provider, ok := meta.(interface{ AlbumArtist() string }); ok {
+		if names := splitArtistNames(provider.AlbumArtist()); len(names) > 0 {
+			return names
+		}
+	}
+
+	if provider, ok := meta.(interface{ Raw() map[string]interface{} }); ok {
+		raw := provider.Raw()
+		candidates := []string{"albumartist", "album artist", "tpe2", "aart", "----:com.apple.itunes:album artist"}
+		for _, key := range candidates {
+			for rawKey, rawValue := range raw {
+				if !strings.EqualFold(strings.TrimSpace(rawKey), key) {
+					continue
+				}
+				if names := splitArtistNames(fmt.Sprint(rawValue)); len(names) > 0 {
+					return names
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func splitArtistNames(value string) []string {
+	v := strings.TrimSpace(value)
+	if v == "" {
+		return nil
+	}
+
+	parts := []string{v}
+	separators := []string{";", "/", "|", " feat. ", " ft. ", " featuring ", ", "}
+	for _, sep := range separators {
+		next := make([]string, 0, len(parts))
+		for _, part := range parts {
+			next = append(next, strings.Split(part, sep)...)
+		}
+		parts = next
+	}
+
+	seen := make(map[string]struct{}, len(parts))
+	cleaned := make([]string, 0, len(parts))
+	for _, part := range parts {
+		name := strings.TrimSpace(part)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(name)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		cleaned = append(cleaned, name)
+	}
+
+	return cleaned
 }
 
 func dbSafeNowID() string {

@@ -30,16 +30,18 @@ type Server struct {
 	ingestService *ingest.Service
 	staticDir     string
 	embeddedUIFS  fs.FS
+	webUIEnabled  bool
 	maxUploadSize int64
 	logger        *slog.Logger
 }
 
-func NewServer(store *db.Store, ingestService *ingest.Service, staticDir string, embeddedUIFS fs.FS, maxUploadSizeMB int64, logger *slog.Logger) *Server {
+func NewServer(store *db.Store, ingestService *ingest.Service, staticDir string, embeddedUIFS fs.FS, webUIEnabled bool, maxUploadSizeMB int64, logger *slog.Logger) *Server {
 	return &Server{
 		store:         store,
 		ingestService: ingestService,
 		staticDir:     staticDir,
 		embeddedUIFS:  embeddedUIFS,
+		webUIEnabled:  webUIEnabled,
 		maxUploadSize: maxUploadSizeMB * 1024 * 1024,
 		logger:        logger,
 	}
@@ -69,6 +71,10 @@ func (s *Server) Handler() http.Handler {
 
 		api.Post("/ingestion/scan", s.scanLibrary)
 	})
+
+	if !s.webUIEnabled {
+		return r
+	}
 
 	return s.spaFallback(r)
 }
@@ -405,7 +411,11 @@ func writeFileMetadata(path string, input db.TrackEditInput) error {
 	defer tag.Close()
 
 	tag.SetTitle(input.Title)
-	tag.SetArtist(input.ArtistName)
+	artist := input.ArtistName
+	if len(input.ArtistNames) > 0 {
+		artist = strings.Join(input.ArtistNames, "; ")
+	}
+	tag.SetArtist(artist)
 	tag.SetAlbum(input.AlbumTitle)
 	return tag.Save()
 }

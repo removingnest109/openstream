@@ -15,6 +15,7 @@ type Config struct {
 	LogoFallback    string
 	ScanInterval    time.Duration
 	MaxUploadSizeMB int64
+	DisableWebUI    bool
 }
 
 func Load() Config {
@@ -27,6 +28,7 @@ func Load() Config {
 		LogoFallback:    env("LOGO_FALLBACK_PATH", ""),
 		ScanInterval:    envDuration("SCAN_INTERVAL", 5*time.Minute),
 		MaxUploadSizeMB: int64(envInt("MAX_UPLOAD_MB", 1024)),
+		DisableWebUI:    envBool("DISABLE_WEB_UI", false),
 	}
 }
 
@@ -60,4 +62,16 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 		return fallback
 	}
 	return d
+}
+
+func envBool(key string, fallback bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		return fallback
+	}
+	return b
 }

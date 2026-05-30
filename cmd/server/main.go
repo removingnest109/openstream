@@ -38,13 +38,18 @@ func main() {
 	workerSvc := worker.NewScannerWorker(ingestService, cfg.ScanInterval, logger)
 
 	var embeddedUI fs.FS
-	if assets, err := webassets.ReactBuildFS(); err != nil {
-		logger.Warn("embedded web assets unavailable", "err", err)
+	webUIEnabled := !cfg.DisableWebUI
+	if webUIEnabled {
+		if assets, err := webassets.ReactBuildFS(); err != nil {
+			logger.Warn("embedded web assets unavailable", "err", err)
+		} else {
+			embeddedUI = assets
+		}
 	} else {
-		embeddedUI = assets
+		logger.Info("web ui disabled; serving backend only")
 	}
 
-	server := api.NewServer(store, ingestService, cfg.StaticDir, embeddedUI, cfg.MaxUploadSizeMB, logger)
+	server := api.NewServer(store, ingestService, cfg.StaticDir, embeddedUI, webUIEnabled, cfg.MaxUploadSizeMB, logger)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

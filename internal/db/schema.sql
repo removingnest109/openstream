@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS artists (
 CREATE TABLE IF NOT EXISTS albums (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL COLLATE NOCASE,
-  artist_id INTEGER NOT NULL,
+  primary_artist_id INTEGER NOT NULL,
+  artist_signature TEXT NOT NULL DEFAULT '',
   year INTEGER NULL,
   album_art_path TEXT NULL,
-  FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
-  UNIQUE(title, artist_id)
+  FOREIGN KEY (primary_artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+  UNIQUE(title, artist_signature)
 );
 
 CREATE TABLE IF NOT EXISTS tracks (
@@ -24,6 +25,26 @@ CREATE TABLE IF NOT EXISTS tracks (
   album_id INTEGER NOT NULL,
   date_added_utc TEXT NOT NULL,
   FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS album_artists (
+  album_id INTEGER NOT NULL,
+  artist_id INTEGER NOT NULL,
+  artist_order INTEGER NOT NULL DEFAULT 0,
+  is_primary INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0, 1)),
+  PRIMARY KEY (album_id, artist_id),
+  FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
+  FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS track_artists (
+  track_id TEXT NOT NULL,
+  artist_id INTEGER NOT NULL,
+  artist_order INTEGER NOT NULL DEFAULT 0,
+  is_primary INTEGER NOT NULL DEFAULT 0 CHECK (is_primary IN (0, 1)),
+  PRIMARY KEY (track_id, artist_id),
+  FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+  FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS playlists (
@@ -41,4 +62,7 @@ CREATE TABLE IF NOT EXISTS playlist_tracks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_tracks_album_id ON tracks(album_id);
+CREATE INDEX IF NOT EXISTS idx_albums_primary_artist_id ON albums(primary_artist_id);
+CREATE INDEX IF NOT EXISTS idx_album_artists_artist_id ON album_artists(artist_id);
+CREATE INDEX IF NOT EXISTS idx_track_artists_artist_id ON track_artists(artist_id);
 CREATE INDEX IF NOT EXISTS idx_playlist_tracks_track_id ON playlist_tracks(track_id);
