@@ -183,6 +183,35 @@ class OpenStreamApi {
     return getPlaylistById(id);
   }
 
+  Future<void> addTrackToPlaylist({
+    required int playlistId,
+    required String trackId,
+  }) async {
+    final response = await _client.post(
+      _uri('/api/playlists/$playlistId/tracks'),
+      headers: <String, String>{'Content-Type': 'application/json'},
+      body: jsonEncode(<String, dynamic>{'trackId': trackId}),
+    );
+    _ensureSuccess(response);
+  }
+
+  Future<void> updatePlaylist({
+    required int playlistId,
+    required String name,
+  }) async {
+    final response = await _client.put(
+      _uri('/api/playlists/$playlistId'),
+      headers: <String, String>{'Content-Type': 'application/json'},
+      body: jsonEncode(<String, dynamic>{'name': name}),
+    );
+    _ensureSuccess(response);
+  }
+
+  Future<void> deletePlaylist(int playlistId) async {
+    final response = await _client.delete(_uri('/api/playlists/$playlistId'));
+    _ensureSuccess(response);
+  }
+
   Future<void> uploadAlbumArt({
     required int albumId,
     required List<int> bytes,

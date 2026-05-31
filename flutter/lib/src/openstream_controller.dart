@@ -690,6 +690,73 @@ class OpenStreamController extends ChangeNotifier {
     await refreshAll();
   }
 
+  Future<void> addTrackToPlaylist({
+    required int playlistId,
+    required String trackId,
+  }) async {
+    if (_api == null) {
+      return;
+    }
+
+    try {
+      await _api!.addTrackToPlaylist(playlistId: playlistId, trackId: trackId);
+      await refreshAll();
+    } catch (e) {
+      _setPlaylistApiError(
+        e,
+        compatibilityMessage:
+            'This server does not support adding tracks to playlists yet. Update the server to use this feature.',
+      );
+    }
+  }
+
+  Future<void> updatePlaylist({
+    required int playlistId,
+    required String name,
+  }) async {
+    if (_api == null) {
+      return;
+    }
+
+    try {
+      await _api!.updatePlaylist(playlistId: playlistId, name: name);
+      await refreshAll();
+    } catch (e) {
+      _setPlaylistApiError(
+        e,
+        compatibilityMessage:
+            'This server does not support playlist editing yet. Update the server to use this feature.',
+      );
+    }
+  }
+
+  Future<void> deletePlaylist(int playlistId) async {
+    if (_api == null) {
+      return;
+    }
+
+    try {
+      await _api!.deletePlaylist(playlistId);
+      await refreshAll();
+    } catch (e) {
+      _setPlaylistApiError(
+        e,
+        compatibilityMessage:
+            'This server does not support playlist deletion yet. Update the server to use this feature.',
+      );
+    }
+  }
+
+  void _setPlaylistApiError(
+    Object errorValue, {
+    required String compatibilityMessage,
+  }) {
+    final raw = errorValue.toString();
+    final isCompatibilityFailure = raw.contains('(404)') || raw.contains('(405)');
+    error = isCompatibilityFailure ? compatibilityMessage : raw;
+    notifyListeners();
+  }
+
   Future<void> uploadAlbumArt(int albumId) async {
     if (_api == null) {
       return;

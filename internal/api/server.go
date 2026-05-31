@@ -65,6 +65,9 @@ func (s *Server) Handler() http.Handler {
 		api.Get("/playlists", s.getPlaylists)
 		api.Get("/playlists/{id}", s.getPlaylist)
 		api.Post("/playlists", s.createPlaylist)
+		api.Put("/playlists/{id}", s.updatePlaylist)
+		api.Delete("/playlists/{id}", s.deletePlaylist)
+		api.Post("/playlists/{id}/tracks", s.addTrackToPlaylist)
 
 		api.Post("/ingestion/scan", s.scanLibrary)
 	})
@@ -362,6 +365,120 @@ func (s *Server) createPlaylist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.json(w, http.StatusCreated, item)
+}
+
+func (s *Server) updatePlaylist(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Invalid playlist id."})
+		return
+	}
+
+	var input db.PlaylistEditInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body."})
+		return
+	}
+	if strings.TrimSpace(input.Name) == "" {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Playlist name is required."})
+		return
+	}
+
+	if err := s.store.UpdatePlaylist(r.Context(), id, input); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.json(w, http.StatusNotFound, map[string]string{"error": "Playlist not found."})
+			return
+		}
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	updated, err := s.store.GetPlaylist(r.Context(), id)
+	if err != nil {
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+	if updated == nil {
+		s.json(w, http.StatusNotFound, map[string]string{"error": "Playlist not found."})
+		return
+	}
+
+	s.json(w, http.StatusOK, updated)
+}
+
+func (s *Server) deletePlaylist(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Invalid playlist id."})
+		return
+	}
+
+	if err := s.store.DeletePlaylist(r.Context(), id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.json(w, http.StatusNotFound, map[string]string{"error": "Playlist not found."})
+			return
+		}
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.json(w, http.StatusOK, map[string]string{"status": "Playlist deleted successfully."})
+}
+
+func (s *Server) addTrackToPlaylist(w http.ResponseWriter, r *http.Request) {
+	playlistID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Invalid playlist id."})
+		return
+	}
+
+	var payload struct {
+		TrackID string `json:"trackId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "Invalid request body."})
+		return
+	}
+	if strings.TrimSpace(payload.TrackID) == "" {
+		s.json(w, http.StatusBadRequest, map[string]string{"error": "trackId is required."})
+		return
+	}
+
+	playlist, err := s.store.GetPlaylist(r.Context(), playlistID)
+	if err != nil {
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+	if playlist == nil {
+		s.json(w, http.StatusNotFound, map[string]string{"error": "Playlist not found."})
+		return
+	}
+
+	if _, err := s.store.GetTrackFilePath(r.Context(), payload.TrackID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			s.json(w, http.StatusNotFound, map[string]string{"error": "Track not found."})
+			return
+		}
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := s.store.AddTrackToPlaylist(r.Context(), playlistID, payload.TrackID); err != nil {
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	updated, err := s.store.GetPlaylist(r.Context(), playlistID)
+	if err != nil {
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+	if updated == nil {
+		s.json(w, http.StatusNotFound, map[string]string{"error": "Playlist not found."})
+		return
+	}
+
+	s.json(w, http.StatusOK, updated)
 }
 
 func (s *Server) scanLibrary(w http.ResponseWriter, r *http.Request) {

@@ -53,6 +53,10 @@ type PlaylistCreateInput struct {
 	TrackIDs []string `json:"trackIds"`
 }
 
+type PlaylistEditInput struct {
+	Name string `json:"name"`
+}
+
 type TrackEditInput struct {
 	Title            string   `json:"title"`
 	AlbumTitle       string   `json:"albumTitle"`

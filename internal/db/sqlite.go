@@ -469,6 +469,46 @@ func (s *Store) CreatePlaylist(ctx context.Context, input PlaylistCreateInput) (
 	return s.GetPlaylist(ctx, pid)
 }
 
+func (s *Store) AddTrackToPlaylist(ctx context.Context, playlistID int, trackID string) error {
+	_, err := s.db.ExecContext(
+		ctx,
+		`INSERT OR IGNORE INTO playlist_tracks(playlist_id, track_id) VALUES(?, ?)`,
+		playlistID,
+		trackID,
+	)
+	return err
+}
+
+func (s *Store) UpdatePlaylist(ctx context.Context, id int, input PlaylistEditInput) error {
+	res, err := s.db.ExecContext(ctx, `UPDATE playlists SET name = ? WHERE id = ?`, input.Name, id)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func (s *Store) DeletePlaylist(ctx context.Context, id int) error {
+	res, err := s.db.ExecContext(ctx, `DELETE FROM playlists WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (s *Store) getPlaylistTracks(ctx context.Context, playlistID int) ([]Track, error) {
 	q := `
 SELECT

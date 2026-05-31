@@ -431,10 +431,17 @@ class _LibraryTab extends StatelessWidget {
               if (value == 'delete') {
                 _showDeleteDialog(context, controller, track.id);
               }
+              if (value == 'add_to_playlist') {
+                _showAddToPlaylistDialog(context, controller, track);
+              }
             },
             itemBuilder: (context) => const [
               PopupMenuItem(value: 'edit', child: Text('Edit metadata')),
               PopupMenuItem(value: 'delete', child: Text('Delete track')),
+              PopupMenuItem(
+                value: 'add_to_playlist',
+                child: Text('Add to playlist'),
+              ),
             ],
           ),
         );
@@ -543,6 +550,94 @@ class _LibraryTab extends StatelessWidget {
                 }
               },
               child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddToPlaylistDialog(
+    BuildContext context,
+    OpenStreamController controller,
+    Track track,
+  ) async {
+    if (controller.playlists.isEmpty) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('No playlists yet'),
+          content: const Text('Create a playlist first, then add tracks to it.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    int selectedPlaylistId = controller.playlists.first.id;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add to playlist'),
+          content: SizedBox(
+            width: 420,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose a playlist for "${track.title}".',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 10),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 280),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final playlist in controller.playlists)
+                        RadioListTile<int>(
+                          value: playlist.id,
+                          groupValue: selectedPlaylistId,
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              selectedPlaylistId = value;
+                            });
+                          },
+                          title: Text(playlist.name),
+                          subtitle: Text('${playlist.tracks.length} tracks'),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await controller.addTrackToPlaylist(
+                  playlistId: selectedPlaylistId,
+                  trackId: track.id,
+                );
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: const Text('Add track'),
             ),
           ],
         ),
@@ -947,6 +1042,23 @@ class _PlaylistsTab extends StatelessWidget {
                     return ExpansionTile(
                       title: Text(playlist.name),
                       subtitle: Text('${playlist.tracks.length} tracks'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Edit playlist',
+                            onPressed: () =>
+                                _showEditPlaylistDialog(context, controller, playlist),
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                          IconButton(
+                            tooltip: 'Delete playlist',
+                            onPressed: () =>
+                                _showDeletePlaylistDialog(context, controller, playlist),
+                            icon: const Icon(Icons.delete_outline),
+                          ),
+                        ],
+                      ),
                       children: [
                         for (var i = 0; i < playlist.tracks.length; i++)
                           ListTile(
@@ -1044,6 +1156,76 @@ class _PlaylistsTab extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showEditPlaylistDialog(
+    BuildContext context,
+    OpenStreamController controller,
+    Playlist playlist,
+  ) async {
+    final nameCtrl = TextEditingController(text: playlist.name);
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Edit playlist'),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(labelText: 'Playlist name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final nextName = nameCtrl.text.trim();
+              if (nextName.isEmpty) {
+                return;
+              }
+              await controller.updatePlaylist(
+                playlistId: playlist.id,
+                name: nextName,
+              );
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showDeletePlaylistDialog(
+    BuildContext context,
+    OpenStreamController controller,
+    Playlist playlist,
+  ) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete playlist'),
+        content: Text('Delete "${playlist.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              await controller.deletePlaylist(playlist.id);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }
