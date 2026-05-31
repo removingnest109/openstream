@@ -85,36 +85,6 @@ Future<void> _showServerManagerSheet(
   );
 }
 
-Future<bool> _confirmOpenPickerOnMobile(BuildContext context) async {
-  final isMobilePlatform = !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
-  if (!isMobilePlatform) {
-    return true;
-  }
-
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Open file picker?'),
-      content: const Text(
-        'This will open the system file picker. You can cancel now if you opened this by mistake.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Continue'),
-        ),
-      ],
-    ),
-  );
-  return result ?? false;
-}
-
 class OpenStreamApp extends StatelessWidget {
   const OpenStreamApp({super.key});
 
@@ -621,9 +591,6 @@ class _AlbumsTabState extends State<_AlbumsTab> {
                           IconButton(
                             tooltip: 'Upload album art',
                             onPressed: () async {
-                              if (!await _confirmOpenPickerOnMobile(context)) {
-                                return;
-                              }
                               await controller.uploadAlbumArt(album.id);
                             },
                             icon: const Icon(Icons.image_outlined),
@@ -1043,9 +1010,6 @@ class _SettingsTab extends StatelessWidget {
         ],
         FilledButton.tonalIcon(
           onPressed: () async {
-            if (!await _confirmOpenPickerOnMobile(context)) {
-              return;
-            }
             await controller.uploadTrack();
           },
           icon: const Icon(Icons.upload_file),

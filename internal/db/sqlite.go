@@ -320,25 +320,42 @@ func (s *Store) GetPlaylists(ctx context.Context) ([]Playlist, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	playlists := []Playlist{}
+	headers := []struct {
+		id      int
+		name    string
+		created string
+	}{}
 	for rows.Next() {
-		var (
-			id            int
-			name, created string
-		)
-		if err := rows.Scan(&id, &name, &created); err != nil {
+		var header struct {
+			id      int
+			name    string
+			created string
+		}
+		if err := rows.Scan(&header.id, &header.name, &header.created); err != nil {
+			rows.Close()
 			return nil, err
 		}
-		dt, _ := time.Parse(time.RFC3339, created)
-		tracks, err := s.getPlaylistTracks(ctx, id)
+		headers = append(headers, header)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+
+	playlists := make([]Playlist, 0, len(headers))
+	for _, header := range headers {
+		dt, _ := time.Parse(time.RFC3339, header.created)
+		tracks, err := s.getPlaylistTracks(ctx, header.id)
 		if err != nil {
 			return nil, err
 		}
-		playlists = append(playlists, Playlist{ID: id, Name: name, CreatedAt: dt, Tracks: tracks})
+		playlists = append(playlists, Playlist{ID: header.id, Name: header.name, CreatedAt: dt, Tracks: tracks})
 	}
-	return playlists, rows.Err()
+	return playlists, nil
 }
 
 func (s *Store) GetArtistCatalog(ctx context.Context, search string) (*ArtistCatalog, error) {

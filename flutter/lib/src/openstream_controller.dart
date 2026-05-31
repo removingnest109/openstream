@@ -18,7 +18,12 @@ const _volumeKey = 'openstream.volume';
 const _legacyWebServerUrl = 'http://localhost:9090';
 
 String _defaultWebServerUrl() {
-  final origin = Uri.base.origin.trim();
+  final uri = Uri.base;
+  // file:// URIs don't have an origin, return default for desktop/non-web
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return _legacyWebServerUrl;
+  }
+  final origin = uri.origin.trim();
   if (origin.isEmpty || origin == 'null') {
     return _legacyWebServerUrl;
   }
