@@ -70,6 +70,7 @@ Ship the `webui/` directory with the binary, or point `WEB_UI_DIR` at another di
 Use `scripts/rebuild-web.sh` to clear and rebuild the Flutter web bundle, then resync `webui/`.
 Use `scripts/build.sh native` to package the server binary and refresh `webui/` from `flutter/build/web` when it exists.
 Use `scripts/package-release.sh all` to build release zip archives that include the binary, `webui/`, `install.sh`, and `openstream.service`.
+Use `scripts/build-client-release.sh` to build the Flutter Linux client release.
 
 ## Deployment
 
@@ -81,6 +82,27 @@ Build and refresh the packaged assets with:
 scripts/rebuild-web.sh
 scripts/build.sh native
 ```
+
+Build the Linux client release with:
+
+```bash
+scripts/build-client-release.sh
+```
+
+Install the Linux client bundle with:
+
+```bash
+sudo ./scripts/install-client.sh
+```
+
+That installer copies the bundle into `/opt/openstream-client`, installs a launcher at `/usr/local/bin/openstream-client`, and registers the desktop entry in `/usr/share/applications`.
+
+The release tarball includes `install-client.sh` at its root next to the `openstream/` bundle, so you can extract it and run the installer from there.
+
+The default output layout is under `dist/flutter/`:
+
+- `dist/flutter/linux/` for the Linux desktop bundle
+- `dist/flutter/openstream-linux-client.tar.gz` for the packaged release archive
 
 Create release archives with:
 

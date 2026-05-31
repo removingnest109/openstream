@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=OpenStream Client
+Comment=OpenStream Linux desktop client
+Exec=openstream-client %U
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupNotify=true
