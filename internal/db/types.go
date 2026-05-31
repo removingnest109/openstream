@@ -7,14 +7,26 @@ type Artist struct {
 	Name string `json:"name"`
 }
 
+type ArtistSummary struct {
+	ID                   int    `json:"id"`
+	Name                 string `json:"name"`
+	PrimaryAlbumCount    int    `json:"primaryAlbumCount"`
+	TrackAppearanceCount int    `json:"trackAppearanceCount"`
+}
+
+type ArtistCatalog struct {
+	Primary   []ArtistSummary `json:"primary"`
+	AppearsOn []ArtistSummary `json:"appearsOn"`
+}
+
 type Album struct {
-	ID           int     `json:"id"`
-	Title        string  `json:"title"`
-	ArtistID     int     `json:"artistId"`
-	Artist       *Artist `json:"artist,omitempty"`
+	ID           int      `json:"id"`
+	Title        string   `json:"title"`
+	ArtistID     int      `json:"artistId"`
+	Artist       *Artist  `json:"artist,omitempty"`
 	Artists      []Artist `json:"artists,omitempty"`
-	Year         *int    `json:"year"`
-	AlbumArtPath *string `json:"albumArtPath"`
+	Year         *int     `json:"year"`
+	AlbumArtPath *string  `json:"albumArtPath"`
 }
 
 type Track struct {

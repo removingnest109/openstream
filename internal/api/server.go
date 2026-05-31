@@ -57,6 +57,7 @@ func (s *Server) Handler() http.Handler {
 
 	r.Route("/api", func(api chi.Router) {
 		api.Get("/tracks", s.getTracks)
+		api.Get("/artists", s.getArtists)
 		api.Get("/tracks/{id}/stream", s.streamTrack)
 		api.Post("/tracks/upload", s.uploadTrack)
 		api.Put("/tracks/{id}", s.editTrack)
@@ -158,6 +159,15 @@ func (s *Server) getTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.json(w, http.StatusOK, tracks)
+}
+
+func (s *Server) getArtists(w http.ResponseWriter, r *http.Request) {
+	catalog, err := s.store.GetArtistCatalog(r.Context(), r.URL.Query().Get("search"))
+	if err != nil {
+		s.error(w, http.StatusInternalServerError, err)
+		return
+	}
+	s.json(w, http.StatusOK, catalog)
 }
 
 func (s *Server) streamTrack(w http.ResponseWriter, r *http.Request) {

@@ -242,13 +242,13 @@ LEFT JOIN artists ar ON ar.id = a.primary_artist_id
 WHERE a.id = ?`, id)
 
 	var (
-		albumID          int
-		primaryArtistID  int
-		title            string
-		artistID         sql.NullInt64
-		artistName       sql.NullString
-		year              sql.NullInt64
-		art               sql.NullString
+		albumID         int
+		primaryArtistID int
+		title           string
+		artistID        sql.NullInt64
+		artistName      sql.NullString
+		year            sql.NullInt64
+		art             sql.NullString
 	)
 	if err := row.Scan(&albumID, &title, &primaryArtistID, &year, &art, &artistID, &artistName); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -339,6 +339,66 @@ func (s *Store) GetPlaylists(ctx context.Context) ([]Playlist, error) {
 		playlists = append(playlists, Playlist{ID: id, Name: name, CreatedAt: dt, Tracks: tracks})
 	}
 	return playlists, rows.Err()
+}
+
+func (s *Store) GetArtistCatalog(ctx context.Context, search string) (*ArtistCatalog, error) {
+	q := `
+WITH primary_counts AS (
+    SELECT primary_artist_id AS artist_id, COUNT(*) AS primary_album_count
+    FROM albums
+    GROUP BY primary_artist_id
+),
+track_counts AS (
+    SELECT artist_id, COUNT(DISTINCT track_id) AS track_appearance_count
+    FROM track_artists
+    GROUP BY artist_id
+)
+SELECT
+    ar.id,
+    ar.name,
+    COALESCE(pc.primary_album_count, 0),
+    COALESCE(tc.track_appearance_count, 0)
+FROM artists ar
+LEFT JOIN primary_counts pc ON pc.artist_id = ar.id
+LEFT JOIN track_counts tc ON tc.artist_id = ar.id
+WHERE (COALESCE(pc.primary_album_count, 0) > 0 OR COALESCE(tc.track_appearance_count, 0) > 0)
+`
+	args := []any{}
+	if strings.TrimSpace(search) != "" {
+		q += ` AND ar.name LIKE ?`
+		args = append(args, "%"+search+"%")
+	}
+	q += ` ORDER BY ar.name COLLATE NOCASE`
+
+	rows, err := s.db.QueryContext(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	catalog := &ArtistCatalog{
+		Primary:   []ArtistSummary{},
+		AppearsOn: []ArtistSummary{},
+	}
+
+	for rows.Next() {
+		var item ArtistSummary
+		if err := rows.Scan(&item.ID, &item.Name, &item.PrimaryAlbumCount, &item.TrackAppearanceCount); err != nil {
+			return nil, err
+		}
+
+		if item.PrimaryAlbumCount > 0 {
+			catalog.Primary = append(catalog.Primary, item)
+			continue
+		}
+		catalog.AppearsOn = append(catalog.AppearsOn, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return catalog, nil
 }
 
 func (s *Store) GetPlaylist(ctx context.Context, id int) (*Playlist, error) {
