@@ -97,12 +97,12 @@ sudo ./scripts/install-client.sh
 
 That installer copies the bundle into `/opt/openstream-client`, installs a launcher at `/usr/local/bin/openstream-client`, and registers the desktop entry in `/usr/share/applications`.
 
-The release tarball includes `install-client.sh` at its root next to the `openstream/` bundle, so you can extract it and run the installer from there.
+The release zip includes `install-client.sh` at its root next to the `openstream/` bundle, so you can extract it and run the installer from there.
 
 The default output layout is under `dist/flutter/`:
 
 - `dist/flutter/linux/` for the Linux desktop bundle
-- `dist/flutter/openstream-linux-client.tar.gz` for the packaged release archive
+- `dist/flutter/openstream-linux-client.zip` for the packaged release archive
 
 Create release archives with:
 

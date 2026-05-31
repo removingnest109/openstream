@@ -44,7 +44,7 @@ build_linux() {
 
 	local package_dir archive_path
 	package_dir="$DIST_DIR/openstream-linux-client"
-	archive_path="$DIST_DIR/openstream-linux-client.tar.gz"
+	archive_path="$DIST_DIR/openstream-linux-client.zip"
 	rm -rf "$package_dir"
 	mkdir -p "$package_dir/openstream"
 	cp -a "$output_dir"/. "$package_dir/openstream"/
@@ -52,7 +52,7 @@ build_linux() {
 	rm -f "$archive_path"
 	(
 		cd "$package_dir"
-		tar -czf "$archive_path" install-client.sh openstream
+		zip -rq "$archive_path" install-client.sh openstream
 	)
 
 	echo "Wrote $output_dir"
@@ -60,6 +60,7 @@ build_linux() {
 }
 
 require_command flutter
+require_command zip
 
 if [[ ! -f "$FLUTTER_DIR/pubspec.yaml" ]]; then
 	echo "Missing Flutter project at $FLUTTER_DIR." >&2
