@@ -43,12 +43,28 @@ Future<void> _showServerManagerSheet(
                       return ListTile(
                         title: Text(server.name),
                         subtitle: Text(server.baseUrl),
-                        trailing: IconButton(
-                          onPressed: () async {
-                            await controller.removeServer(index);
-                            setState(() {});
-                          },
-                          icon: const Icon(Icons.delete_outline),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit server',
+                              onPressed: () async {
+                                nameController.text = server.name;
+                                urlController.text = server.baseUrl;
+                                await controller.removeServer(index);
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
+                            IconButton(
+                              tooltip: 'Delete server',
+                              onPressed: () async {
+                                await controller.removeServer(index);
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
                         ),
                       );
                     },
