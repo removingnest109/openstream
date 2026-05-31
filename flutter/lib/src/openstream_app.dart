@@ -107,6 +107,43 @@ class OpenStreamApp extends StatelessWidget {
 class _AppShell extends StatelessWidget {
   const _AppShell();
 
+  ThemeData _buildTheme({
+    required Color seedColor,
+    required Brightness brightness,
+  }) {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+    );
+    final neutralSurface = brightness == Brightness.dark
+        ? const Color(0xFF121417)
+        : const Color(0xFFF7F8FA);
+    final scheme = baseScheme.copyWith(surface: neutralSurface);
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: neutralSurface,
+      canvasColor: neutralSurface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: neutralSurface,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: const CardThemeData(surfaceTintColor: Colors.transparent),
+      dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
+      bottomSheetTheme: const BottomSheetThemeData(
+        surfaceTintColor: Colors.transparent,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: neutralSurface,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: scheme.secondaryContainer,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<OpenStreamController>(
@@ -116,17 +153,8 @@ class _AppShell extends StatelessWidget {
           title: 'OpenStream',
           debugShowCheckedModeBanner: false,
           themeMode: controller.darkMode ? ThemeMode.dark : ThemeMode.light,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: color),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: color,
-              brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-          ),
+          theme: _buildTheme(seedColor: color, brightness: Brightness.light),
+          darkTheme: _buildTheme(seedColor: color, brightness: Brightness.dark),
           home: const _HomePage(),
         );
       },
