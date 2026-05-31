@@ -46,6 +46,38 @@ Ship the `webui/` directory with the binary, or point `WEB_UI_DIR` at another di
 Use `scripts/rebuild-web.sh` to clear and rebuild the Flutter web bundle, then resync `webui/`.
 Use `scripts/build.sh native` to package the server binary and refresh `webui/` from `flutter/build/web` when it exists.
 
+## Deployment
+
+The included systemd unit is [`scripts/openstream.service`](scripts/openstream.service).
+It currently expects these runtime paths:
+
+- binary: `/bin/openstream`
+- web UI: `/opt/openstream/webui`
+- music library: `/media/music`
+- database: `/media/music/openstream.db`
+- port: `80`
+
+Build and refresh the packaged assets with:
+
+```bash
+scripts/rebuild-web.sh
+scripts/build.sh native
+```
+
+Install the binary, web UI, and systemd unit with:
+
+```bash
+sudo ./scripts/install.sh
+```
+
+`scripts/install.sh` reads the paths directly from [`scripts/openstream.service`](scripts/openstream.service), copies the binary to the unit's `ExecStart` path, copies the web bundle to the unit's `WEB_UI_DIR`, installs the service into `/etc/systemd/system/`, reloads systemd, and enables the service.
+
+If needed, you can override the detected sources when installing:
+
+```bash
+sudo BIN_SOURCE=./bin/openstream-linux-amd64 ./scripts/install.sh
+```
+
 ## Development
 
 ### Clone the repo and build from source

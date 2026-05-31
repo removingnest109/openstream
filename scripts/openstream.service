@@ -1,5 +1,5 @@
 [Unit]
-Description=Openstream Lite Music Server
+Description=Openstream Music Server
 After=network-online.target
 Wants=network-online.target
 
