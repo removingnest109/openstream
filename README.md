@@ -15,7 +15,9 @@ Openstream is a lightweight, portable self-hosted music library and streaming se
 
 ## Getting Started
 
-### Install From A Release
+### Server
+
+#### Install From A Release
 
 Release archives can be downloaded from the Releases page of this repo.
 Each archive contains an `openstream/` folder with:
@@ -41,7 +43,7 @@ The included systemd unit currently expects these runtime paths:
 - database: `/media/music/openstream.db`
 - port: `80`
 
-### Run Manually
+#### Run Manually
 
 If you want to run the server directly instead of installing the systemd service:
 
@@ -70,9 +72,53 @@ Ship the `webui/` directory with the binary, or point `WEB_UI_DIR` at another di
 Use `scripts/rebuild-web.sh` to clear and rebuild the Flutter web bundle, then resync `webui/`.
 Use `scripts/build.sh native` to package the server binary and refresh `webui/` from `flutter/build/web` when it exists.
 Use `scripts/package-release.sh all` to build release zip archives that include the binary, `webui/`, `install.sh`, and `openstream.service`.
-Use `scripts/build-client-release.sh` to build the Flutter Linux client release.
 
-## Deployment
+## Client
+
+Download the Linux client release zip from the Releases page, extract it, and run:
+
+```bash
+sudo ./install-client.sh
+```
+
+That installer copies the bundle into `/opt/openstream-client`, installs a launcher at `/usr/local/bin/openstream-client`, and registers the desktop entry in `/usr/share/applications`.
+
+The release zip includes `install-client.sh` at its root next to the `openstream/` bundle.
+
+## Development
+
+### Clone the repo and build from source
+
+```bash
+git clone example.git
+cd openstream-lite
+
+scripts/rebuild-web.sh
+
+go mod tidy
+go build -o ./bin/openstream-linux-amd64 ./cmd/server
+```
+
+Or build the packaged binary with:
+
+```bash
+scripts/build.sh native
+```
+
+### Client Build
+
+Build the Linux client release with:
+
+```bash
+scripts/build-client-release.sh
+```
+
+The default output layout is under `dist/flutter/`:
+
+- `dist/flutter/linux/` for the Linux desktop bundle
+- `dist/flutter/openstream-linux-client.zip` for the packaged release archive
+
+### Deployment
 
 The included systemd unit is [`scripts/openstream.service`](scripts/openstream.service).
 
@@ -82,27 +128,6 @@ Build and refresh the packaged assets with:
 scripts/rebuild-web.sh
 scripts/build.sh native
 ```
-
-Build the Linux client release with:
-
-```bash
-scripts/build-client-release.sh
-```
-
-Install the Linux client bundle with:
-
-```bash
-sudo ./scripts/install-client.sh
-```
-
-That installer copies the bundle into `/opt/openstream-client`, installs a launcher at `/usr/local/bin/openstream-client`, and registers the desktop entry in `/usr/share/applications`.
-
-The release zip includes `install-client.sh` at its root next to the `openstream/` bundle, so you can extract it and run the installer from there.
-
-The default output layout is under `dist/flutter/`:
-
-- `dist/flutter/linux/` for the Linux desktop bundle
-- `dist/flutter/openstream-linux-client.zip` for the packaged release archive
 
 Create release archives with:
 
@@ -128,26 +153,6 @@ If needed, you can override the detected sources when installing:
 
 ```bash
 sudo BIN_SOURCE=./bin/openstream-linux-amd64 ./scripts/install.sh
-```
-
-## Development
-
-### Clone the repo and build from source
-
-```bash
-git clone example.git
-cd openstream-lite
-
-scripts/rebuild-web.sh
-
-go mod tidy
-go build -o ./bin/openstream-linux-amd64 ./cmd/server
-```
-
-Or build the packaged binary with:
-
-```bash
-scripts/build.sh native
 ```
 
 ### Environment
