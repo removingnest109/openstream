@@ -10,6 +10,7 @@ Group=root
 Environment=PORT=80
 Environment=MUSIC_LIBRARY_PATH=/media/music
 Environment=DB_PATH=/media/music/openstream.db
+Environment=WEB_UI_DIR=/opt/openstream/webui
 ExecStart=/bin/openstream
 Restart=on-failure
 RestartSec=5
