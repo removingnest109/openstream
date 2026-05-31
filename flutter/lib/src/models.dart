@@ -18,7 +18,8 @@ class Artist {
           ? json['name'] as String
           : 'Unknown Artist',
       primaryAlbumCount: (json['primaryAlbumCount'] as num?)?.toInt() ?? 0,
-      trackAppearanceCount: (json['trackAppearanceCount'] as num?)?.toInt() ?? 0,
+      trackAppearanceCount:
+          (json['trackAppearanceCount'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -76,8 +77,8 @@ class Album {
     final fallbackArtist = json['artist'] is Map<String, dynamic>
         ? Artist.fromJson(json['artist'] as Map<String, dynamic>)
         : (parsedArtists.isNotEmpty
-            ? parsedArtists.first
-            : Artist(id: 0, name: 'Unknown Artist'));
+              ? parsedArtists.first
+              : Artist(id: 0, name: 'Unknown Artist'));
 
     return Album(
       id: (json['id'] as num?)?.toInt() ?? 0,
@@ -188,9 +189,9 @@ class ServerConfig {
   final String baseUrl;
 
   Map<String, String> toJson() => <String, String>{
-        'name': name,
-        'baseUrl': baseUrl,
-      };
+    'name': name,
+    'baseUrl': baseUrl,
+  };
 
   factory ServerConfig.fromJson(Map<String, dynamic> json) {
     return ServerConfig(
@@ -199,4 +200,3 @@ class ServerConfig {
     );
   }
 }
-

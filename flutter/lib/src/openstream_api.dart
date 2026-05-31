@@ -6,7 +6,7 @@ import 'models.dart';
 
 class OpenStreamApi {
   OpenStreamApi({required this.baseUrl, http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final String baseUrl;
   final http.Client _client;
@@ -18,7 +18,8 @@ class OpenStreamApi {
     return Uri.parse('$normalizedBase$path').replace(queryParameters: query);
   }
 
-  String streamUrl(String trackId) => _uri('/api/tracks/$trackId/stream').toString();
+  String streamUrl(String trackId) =>
+      _uri('/api/tracks/$trackId/stream').toString();
 
   String albumArtUrl(String? artPath) {
     if (artPath == null || artPath.isEmpty) {
@@ -52,7 +53,10 @@ class OpenStreamApi {
     final response = await _client.get(_uri('/api/tracks', query));
     _ensureSuccess(response);
     final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded.whereType<Map<String, dynamic>>().map(Track.fromJson).toList();
+    return decoded
+        .whereType<Map<String, dynamic>>()
+        .map(Track.fromJson)
+        .toList();
   }
 
   Future<ArtistSections> getArtists({String? search}) async {
@@ -76,7 +80,10 @@ class OpenStreamApi {
       return ArtistSections(primary: primary, appearsOn: const <Artist>[]);
     }
 
-    return ArtistSections(primary: const <Artist>[], appearsOn: const <Artist>[]);
+    return ArtistSections(
+      primary: const <Artist>[],
+      appearsOn: const <Artist>[],
+    );
   }
 
   Future<List<Playlist>> getPlaylists() async {
@@ -111,11 +118,7 @@ class OpenStreamApi {
   Future<void> uploadTrack(List<int> bytes, String filename) async {
     final request = http.MultipartRequest('POST', _uri('/api/tracks/upload'));
     request.files.add(
-      http.MultipartFile.fromBytes(
-        'file',
-        bytes,
-        filename: filename,
-      ),
+      http.MultipartFile.fromBytes('file', bytes, filename: filename),
     );
 
     final streamed = await request.send();
@@ -171,10 +174,7 @@ class OpenStreamApi {
     final response = await _client.post(
       _uri('/api/playlists'),
       headers: <String, String>{'Content-Type': 'application/json'},
-      body: jsonEncode(<String, dynamic>{
-        'name': name,
-        'trackIds': trackIds,
-      }),
+      body: jsonEncode(<String, dynamic>{'name': name, 'trackIds': trackIds}),
     );
     _ensureSuccess(response);
 
@@ -188,14 +188,12 @@ class OpenStreamApi {
     required List<int> bytes,
     required String filename,
   }) async {
-    final request =
-        http.MultipartRequest('POST', _uri('/api/albums/$albumId/art'));
+    final request = http.MultipartRequest(
+      'POST',
+      _uri('/api/albums/$albumId/art'),
+    );
     request.files.add(
-      http.MultipartFile.fromBytes(
-        'file',
-        bytes,
-        filename: filename,
-      ),
+      http.MultipartFile.fromBytes('file', bytes, filename: filename),
     );
 
     final streamed = await request.send();
@@ -206,8 +204,9 @@ class OpenStreamApi {
 
   static void _ensureSuccess(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Request failed (${response.statusCode}): ${response.body}');
+      throw Exception(
+        'Request failed (${response.statusCode}): ${response.body}',
+      );
     }
   }
 }
-

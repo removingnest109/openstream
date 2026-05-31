@@ -10,6 +10,7 @@ import 'models.dart';
 import 'openstream_controller.dart';
 
 const _selectedTabKey = 'openstream.selectedTab';
+const _accentPickerCollapsedKey = 'openstream.accentPickerCollapsed';
 
 Future<void> _showServerManagerSheet(
   BuildContext context,
@@ -1018,6 +1019,7 @@ class _SettingsTabState extends State<_SettingsTab> {
 
   final TextEditingController _hexController = TextEditingController();
 
+  bool _isAccentPickerCollapsed = false;
   int _red = 0x6D;
   int _green = 0x4A;
   int _blue = 0xFF;
@@ -1029,6 +1031,26 @@ class _SettingsTabState extends State<_SettingsTab> {
   void initState() {
     super.initState();
     _syncFromSeedColor(widget.controller.seedColorValue);
+    _restoreAccentPickerCollapsed();
+  }
+
+  Future<void> _restoreAccentPickerCollapsed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_accentPickerCollapsedKey) ?? false;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isAccentPickerCollapsed = saved;
+    });
+  }
+
+  Future<void> _setAccentPickerCollapsed(bool collapsed) async {
+    setState(() {
+      _isAccentPickerCollapsed = collapsed;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_accentPickerCollapsedKey, collapsed);
   }
 
   @override
@@ -1147,248 +1169,276 @@ class _SettingsTabState extends State<_SettingsTab> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                Row(
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
                   children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: previewColor,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: _hexController,
-                        maxLength: 6,
-                        decoration: const InputDecoration(
-                          labelText: 'Hex color',
-                          prefixText: '#',
-                          counterText: '',
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9a-fA-F]'),
+                    Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: previewColor,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant,
+                            ),
                           ),
-                          LengthLimitingTextInputFormatter(6),
-                        ],
-                        onChanged: (value) async {
-                          final normalized = value.toUpperCase();
-                          if (normalized != value) {
-                            _hexController.value = _hexController.value
-                                .copyWith(
-                                  text: normalized,
-                                  selection: TextSelection.collapsed(
-                                    offset: normalized.length,
-                                  ),
-                                );
-                          }
-                          await _applyHexIfValid(normalized);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () async {
-                        await _applyRgb(
-                          red: (_defaultAccentColor >> 16) & 0xFF,
-                          green: (_defaultAccentColor >> 8) & 0xFF,
-                          blue: _defaultAccentColor & 0xFF,
-                        );
-                      },
-                      child: const Text('Reset'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 220,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final hueColor = HSVColor.fromAHSV(
-                              1,
-                              _hue,
-                              1,
-                              1,
-                            ).toColor();
-                            final width = constraints.maxWidth;
-                            final height = constraints.maxHeight;
-                            final markerX = _saturation * width;
-                            final markerY = (1 - _value) * height;
-
-                            void handlePosition(Offset localPosition) {
-                              final nextSaturation = (localPosition.dx / width)
-                                  .clamp(0.0, 1.0);
-                              final nextValue =
-                                  (1 - (localPosition.dy / height)).clamp(
-                                    0.0,
-                                    1.0,
-                                  );
-                              _applyHsv(
-                                hue: _hue,
-                                saturation: nextSaturation,
-                                value: nextValue,
-                              );
-                            }
-
-                            return GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onPanDown: (details) =>
-                                  handlePosition(details.localPosition),
-                              onPanUpdate: (details) =>
-                                  handlePosition(details.localPosition),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: <Color>[
-                                              Colors.white,
-                                              hueColor,
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned.fill(
-                                      child: DecoratedBox(
-                                        decoration: const BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: <Color>[
-                                              Colors.transparent,
-                                              Colors.black,
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: markerX - 8,
-                                      top: markerY - 8,
-                                      child: IgnorePointer(
-                                        child: Container(
-                                          width: 16,
-                                          height: 16,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 2,
-                                            ),
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                color: Colors.black54,
-                                                blurRadius: 2,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 28,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final height = constraints.maxHeight;
-                            final markerY = (_hue / 360) * height;
-
-                            void handleHue(Offset localPosition) {
-                              final nextHue =
-                                  ((localPosition.dy / height) * 360).clamp(
-                                    0.0,
-                                    360.0,
-                                  );
-                              _applyHsv(
-                                hue: nextHue,
-                                saturation: _saturation,
-                                value: _value,
-                              );
-                            }
-
-                            return GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onPanDown: (details) =>
-                                  handleHue(details.localPosition),
-                              onPanUpdate: (details) =>
-                                  handleHue(details.localPosition),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: DecoratedBox(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: const <Color>[
-                                              Color(0xFFFF0000),
-                                              Color(0xFFFFFF00),
-                                              Color(0xFF00FF00),
-                                              Color(0xFF00FFFF),
-                                              Color(0xFF0000FF),
-                                              Color(0xFFFF00FF),
-                                              Color(0xFFFF0000),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      left: 2,
-                                      right: 2,
-                                      top: markerY - 2,
-                                      child: IgnorePointer(
-                                        child: Container(
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              2,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: _hexController,
+                            maxLength: 6,
+                            decoration: const InputDecoration(
+                              labelText: 'Hex color',
+                              prefixText: '#',
+                              counterText: '',
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9a-fA-F]'),
                               ),
+                              LengthLimitingTextInputFormatter(6),
+                            ],
+                            onChanged: (value) async {
+                              final normalized = value.toUpperCase();
+                              if (normalized != value) {
+                                _hexController.value = _hexController.value
+                                    .copyWith(
+                                      text: normalized,
+                                      selection: TextSelection.collapsed(
+                                        offset: normalized.length,
+                                      ),
+                                    );
+                              }
+                              await _applyHexIfValid(normalized);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () async {
+                            await _applyRgb(
+                              red: (_defaultAccentColor >> 16) & 0xFF,
+                              green: (_defaultAccentColor >> 8) & 0xFF,
+                              blue: _defaultAccentColor & 0xFF,
                             );
                           },
+                          child: const Text('Reset'),
+                        ),
+                        IconButton(
+                          tooltip: _isAccentPickerCollapsed
+                              ? 'Expand color picker'
+                              : 'Minimize color picker',
+                          onPressed: () {
+                            _setAccentPickerCollapsed(
+                              !_isAccentPickerCollapsed,
+                            );
+                          },
+                          icon: Icon(
+                            _isAccentPickerCollapsed
+                                ? Icons.expand_more
+                                : Icons.expand_less,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!_isAccentPickerCollapsed) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 220,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 220,
+                              height: 220,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final hueColor = HSVColor.fromAHSV(
+                                    1,
+                                    _hue,
+                                    1,
+                                    1,
+                                  ).toColor();
+                                  final width = constraints.maxWidth;
+                                  final height = constraints.maxHeight;
+                                  final markerX = _saturation * width;
+                                  final markerY = (1 - _value) * height;
+
+                                  void handlePosition(Offset localPosition) {
+                                    final nextSaturation =
+                                        (localPosition.dx / width).clamp(
+                                          0.0,
+                                          1.0,
+                                        );
+                                    final nextValue =
+                                        (1 - (localPosition.dy / height)).clamp(
+                                          0.0,
+                                          1.0,
+                                        );
+                                    _applyHsv(
+                                      hue: _hue,
+                                      saturation: nextSaturation,
+                                      value: nextValue,
+                                    );
+                                  }
+
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onPanDown: (details) =>
+                                        handlePosition(details.localPosition),
+                                    onPanUpdate: (details) =>
+                                        handlePosition(details.localPosition),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: <Color>[
+                                                    Colors.white,
+                                                    hueColor,
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned.fill(
+                                            child: DecoratedBox(
+                                              decoration: const BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: <Color>[
+                                                    Colors.transparent,
+                                                    Colors.black,
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            left: markerX - 8,
+                                            top: markerY - 8,
+                                            child: IgnorePointer(
+                                              child: Container(
+                                                width: 16,
+                                                height: 16,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 2,
+                                                  ),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Colors.black54,
+                                                      blurRadius: 2,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              width: 28,
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final height = constraints.maxHeight;
+                                  final markerY = (_hue / 360) * height;
+
+                                  void handleHue(Offset localPosition) {
+                                    final nextHue =
+                                        ((localPosition.dy / height) * 360)
+                                            .clamp(0.0, 360.0);
+                                    _applyHsv(
+                                      hue: nextHue,
+                                      saturation: _saturation,
+                                      value: _value,
+                                    );
+                                  }
+
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onPanDown: (details) =>
+                                        handleHue(details.localPosition),
+                                    onPanUpdate: (details) =>
+                                        handleHue(details.localPosition),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: const <Color>[
+                                                    Color(0xFFFF0000),
+                                                    Color(0xFFFFFF00),
+                                                    Color(0xFF00FF00),
+                                                    Color(0xFF00FFFF),
+                                                    Color(0xFF0000FF),
+                                                    Color(0xFFFF00FF),
+                                                    Color(0xFFFF0000),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            left: 2,
+                                            right: 2,
+                                            top: markerY - 2,
+                                            child: IgnorePointer(
+                                              child: Container(
+                                                height: 4,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(2),
+                                                  border: Border.all(
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
