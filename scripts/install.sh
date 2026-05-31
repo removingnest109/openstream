@@ -2,24 +2,75 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SERVICE_SOURCE="${SERVICE_SOURCE:-$ROOT_DIR/scripts/openstream.service}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+default_service_source() {
+	if [[ -f "$SCRIPT_DIR/openstream.service" ]]; then
+		printf '%s\n' "$SCRIPT_DIR/openstream.service"
+		return
+	fi
+	printf '%s\n' "$ROOT_DIR/scripts/openstream.service"
+}
+
+default_web_ui_source() {
+	if [[ -f "$SCRIPT_DIR/webui/index.html" ]]; then
+		printf '%s\n' "$SCRIPT_DIR/webui"
+		return
+	fi
+	printf '%s\n' "$ROOT_DIR/webui"
+}
+
+preferred_binary_name() {
+	local machine
+	machine="$(uname -m)"
+	case "$machine" in
+		x86_64)
+			printf '%s\n' 'openstream-linux-amd64'
+			;;
+		aarch64|arm64)
+			printf '%s\n' 'openstream-linux-arm64'
+			;;
+		armv7l|armv7)
+			printf '%s\n' 'openstream-linux-armv7'
+			;;
+		*)
+			printf '%s\n' ''
+			;;
+	esac
+}
+
+default_binary_source() {
+	local preferred_name candidate
+	preferred_name="$(preferred_binary_name)"
+	for candidate in \
+		"$SCRIPT_DIR/$preferred_name" \
+		"$ROOT_DIR/bin/$preferred_name"
+	do
+		if [[ -n "$preferred_name" && -f "$candidate" ]]; then
+			printf '%s\n' "$candidate"
+			return
+		fi
+	done
+
+	for candidate in \
+		"$SCRIPT_DIR"/openstream-* \
+		"$ROOT_DIR/bin"/openstream-*
+	do
+		if [[ -f "$candidate" ]]; then
+			printf '%s\n' "$candidate"
+			return
+		fi
+	done
+
+	printf '%s\n' ''
+}
+
+SERVICE_SOURCE="${SERVICE_SOURCE:-$(default_service_source)}"
 SERVICE_NAME="$(basename "$SERVICE_SOURCE")"
 SERVICE_DEST="/etc/systemd/system/$SERVICE_NAME"
-WEB_UI_SOURCE="${WEB_UI_SOURCE:-$ROOT_DIR/webui}"
-BIN_SOURCE="${BIN_SOURCE:-}"
-
-preferred_binary_path() {
-	local goos goarch goarm candidate
-	goos="$(go env GOOS)"
-	goarch="$(go env GOARCH)"
-	goarm="$(go env GOARM 2>/dev/null || true)"
-	candidate="$ROOT_DIR/bin/openstream-${goos}-${goarch}"
-	if [[ "$goarch" == "arm" && -n "$goarm" ]]; then
-		candidate+="v${goarm}"
-	fi
-	printf '%s\n' "$candidate"
-}
+WEB_UI_SOURCE="${WEB_UI_SOURCE:-$(default_web_ui_source)}"
+BIN_SOURCE="${BIN_SOURCE:-$(default_binary_source)}"
 
 if [[ "$EUID" -ne 0 ]]; then
 	echo "Run this script as root (for example: sudo ./scripts/install.sh)." >&2
@@ -48,15 +99,8 @@ BIN_DEST="${exec_start_line#ExecStart=}"
 WEB_UI_DEST="${web_ui_line#Environment=WEB_UI_DIR=}"
 
 if [[ -z "$BIN_SOURCE" ]]; then
-	preferred_bin="$(preferred_binary_path)"
-	if [[ -f "$preferred_bin" ]]; then
-		BIN_SOURCE="$preferred_bin"
-	elif compgen -G "$ROOT_DIR/bin/openstream-*" >/dev/null; then
-		BIN_SOURCE="$(find "$ROOT_DIR/bin" -maxdepth 1 -type f -name 'openstream-*' | sort | head -n 1)"
-	else
-		echo "No built binary found in $ROOT_DIR/bin. Run scripts/build.sh first or set BIN_SOURCE." >&2
-		exit 1
-	fi
+	echo "No installable binary found next to this script or in $ROOT_DIR/bin. Set BIN_SOURCE explicitly if needed." >&2
+	exit 1
 fi
 
 if [[ ! -f "$BIN_SOURCE" ]]; then

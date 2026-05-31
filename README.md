@@ -45,6 +45,7 @@ Ship the `webui/` directory with the binary, or point `WEB_UI_DIR` at another di
 
 Use `scripts/rebuild-web.sh` to clear and rebuild the Flutter web bundle, then resync `webui/`.
 Use `scripts/build.sh native` to package the server binary and refresh `webui/` from `flutter/build/web` when it exists.
+Use `scripts/package-release.sh all` to build release zip archives that include the binary, `webui/`, `install.sh`, and `openstream.service`.
 
 ## Deployment
 
@@ -63,6 +64,25 @@ Build and refresh the packaged assets with:
 scripts/rebuild-web.sh
 scripts/build.sh native
 ```
+
+Create release archives with:
+
+```bash
+scripts/package-release.sh all
+```
+
+Or for a single target:
+
+```bash
+scripts/package-release.sh linux-arm64
+```
+
+Each zip contains an `openstream/` folder with everything needed to install from that extracted directory:
+
+- the target binary
+- `webui/`
+- `install.sh`
+- `openstream.service`
 
 Install the binary, web UI, and systemd unit with:
 

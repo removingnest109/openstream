@@ -2,3 +2,4 @@ bin
 music
 *.db
 webui
+dist
