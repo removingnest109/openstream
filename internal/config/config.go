@@ -11,11 +11,10 @@ type Config struct {
 	Port            int
 	DBPath          string
 	MusicLibrary    string
-	StaticDir       string
 	LogoFallback    string
+	WebUIDir        string
 	ScanInterval    time.Duration
 	MaxUploadSizeMB int64
-	DisableWebUI    bool
 }
 
 func Load() Config {
@@ -24,11 +23,10 @@ func Load() Config {
 		Port:            envInt("PORT", 9090),
 		DBPath:          env("DB_PATH", filepath.Join(cwd, "openstream.db")),
 		MusicLibrary:    env("MUSIC_LIBRARY_PATH", filepath.Join(cwd, "music")),
-		StaticDir:       env("STATIC_DIR", ""),
 		LogoFallback:    env("LOGO_FALLBACK_PATH", ""),
+		WebUIDir:        env("WEB_UI_DIR", filepath.Join(cwd, "webui")),
 		ScanInterval:    envDuration("SCAN_INTERVAL", 5*time.Minute),
 		MaxUploadSizeMB: int64(envInt("MAX_UPLOAD_MB", 1024)),
-		DisableWebUI:    envBool("DISABLE_WEB_UI", false),
 	}
 }
 
@@ -64,14 +62,3 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 	return d
 }
 
-func envBool(key string, fallback bool) bool {
-	v := os.Getenv(key)
-	if v == "" {
-		return fallback
-	}
-	b, err := strconv.ParseBool(v)
-	if err != nil {
-		return fallback
-	}
-	return b
-}

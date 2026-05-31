@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -14,7 +13,6 @@ import (
 	"github.com/removingnest109/openstream-lite/internal/config"
 	"github.com/removingnest109/openstream-lite/internal/db"
 	"github.com/removingnest109/openstream-lite/internal/ingest"
-	"github.com/removingnest109/openstream-lite/internal/webassets"
 	"github.com/removingnest109/openstream-lite/internal/worker"
 )
 
@@ -37,19 +35,7 @@ func main() {
 	ingestService := ingest.NewService(store, cfg.MusicLibrary, cfg.LogoFallback, logger)
 	workerSvc := worker.NewScannerWorker(ingestService, cfg.ScanInterval, logger)
 
-	var embeddedUI fs.FS
-	webUIEnabled := !cfg.DisableWebUI
-	if webUIEnabled {
-		if assets, err := webassets.ReactBuildFS(); err != nil {
-			logger.Warn("embedded web assets unavailable", "err", err)
-		} else {
-			embeddedUI = assets
-		}
-	} else {
-		logger.Info("web ui disabled; serving backend only")
-	}
-
-	server := api.NewServer(store, ingestService, cfg.StaticDir, embeddedUI, webUIEnabled, cfg.MaxUploadSizeMB, logger)
+	server := api.NewServer(store, ingestService, cfg.WebUIDir, cfg.MaxUploadSizeMB, logger)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()

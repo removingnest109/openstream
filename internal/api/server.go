@@ -28,20 +28,16 @@ import (
 type Server struct {
 	store         *db.Store
 	ingestService *ingest.Service
-	staticDir     string
-	embeddedUIFS  fs.FS
-	webUIEnabled  bool
+	webUIDir      string
 	maxUploadSize int64
 	logger        *slog.Logger
 }
 
-func NewServer(store *db.Store, ingestService *ingest.Service, staticDir string, embeddedUIFS fs.FS, webUIEnabled bool, maxUploadSizeMB int64, logger *slog.Logger) *Server {
+func NewServer(store *db.Store, ingestService *ingest.Service, webUIDir string, maxUploadSizeMB int64, logger *slog.Logger) *Server {
 	return &Server{
 		store:         store,
 		ingestService: ingestService,
-		staticDir:     staticDir,
-		embeddedUIFS:  embeddedUIFS,
-		webUIEnabled:  webUIEnabled,
+		webUIDir:      webUIDir,
 		maxUploadSize: maxUploadSizeMB * 1024 * 1024,
 		logger:        logger,
 	}
@@ -73,7 +69,7 @@ func (s *Server) Handler() http.Handler {
 		api.Post("/ingestion/scan", s.scanLibrary)
 	})
 
-	if !s.webUIEnabled {
+	if s.webUIDir == "" {
 		return r
 	}
 
@@ -137,16 +133,12 @@ type staticAssetSource struct {
 }
 
 func (s *Server) assetSources() []staticAssetSource {
-	sources := make([]staticAssetSource, 0, 2)
+	sources := make([]staticAssetSource, 0, 1)
 
-	if s.staticDir != "" {
-		if info, err := os.Stat(s.staticDir); err == nil && info.IsDir() {
-			sources = append(sources, staticAssetSource{name: "disk", fsys: os.DirFS(s.staticDir)})
+	if s.webUIDir != "" {
+		if info, err := os.Stat(s.webUIDir); err == nil && info.IsDir() {
+			sources = append(sources, staticAssetSource{name: "flutter-web", fsys: os.DirFS(s.webUIDir)})
 		}
-	}
-
-	if s.embeddedUIFS != nil {
-		sources = append(sources, staticAssetSource{name: "embedded", fsys: s.embeddedUIFS})
 	}
 
 	return sources
