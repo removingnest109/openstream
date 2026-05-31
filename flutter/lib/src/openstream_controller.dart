@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:file_selector/file_selector.dart';
@@ -15,6 +16,9 @@ const _webServerKey = 'openstream.webServer';
 const _seedColorKey = 'openstream.seedColor';
 const _darkModeKey = 'openstream.darkMode';
 const _volumeKey = 'openstream.volume';
+const _shuffleEnabledKey = 'openstream.shuffleEnabled';
+const _loopEnabledKey = 'openstream.loopEnabled';
+const _playbackSessionKey = 'openstream.playbackSession';
 const _legacyWebServerUrl = 'http://localhost:9090';
 
 String _defaultWebServerUrl() {
@@ -63,6 +67,15 @@ class OpenStreamController extends ChangeNotifier {
 
   OpenStreamApi? _api;
 
+  List<String> _restoredQueueTrackIds = <String>[];
+  String? _restoredSelectedTrackId;
+  int _restoredPositionMs = 0;
+  bool _hasPendingPlaybackRestore = false;
+  bool _isRestoringPlaybackSession = false;
+  int _lastSavedPositionMs = 0;
+
+  bool get isRestoringPlaybackSession => _isRestoringPlaybackSession;
+
   bool get hasServerConfigured {
     if (kIsWeb) {
       return webServerUrl.trim().isNotEmpty;
@@ -91,7 +104,9 @@ class OpenStreamController extends ChangeNotifier {
       map[track.album.id] = track.album;
     }
     final result = map.values.toList();
-    result.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    result.sort(
+      (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+    );
     return result;
   }
 
@@ -113,6 +128,9 @@ class OpenStreamController extends ChangeNotifier {
     seedColorValue = prefs.getInt(_seedColorKey) ?? 0xFF6D4AFF;
     darkMode = prefs.getBool(_darkModeKey) ?? true;
     volume = (prefs.getDouble(_volumeKey) ?? 1.0).clamp(0.0, 1.0);
+    shuffleEnabled = prefs.getBool(_shuffleEnabledKey) ?? false;
+    loopEnabled = prefs.getBool(_loopEnabledKey) ?? false;
+    _loadSavedPlaybackSession(prefs);
 
     if (kIsWeb) {
       final savedWebServerUrl = prefs.getString(_webServerKey)?.trim();
@@ -137,21 +155,74 @@ class OpenStreamController extends ChangeNotifier {
 
     _wireAudioListeners();
     await audioPlayer.setVolume(volume);
+    await audioPlayer.setLoopMode(loopEnabled ? LoopMode.one : LoopMode.off);
     isBooting = false;
     notifyListeners();
     await refreshAll();
   }
 
+  void _loadSavedPlaybackSession(SharedPreferences prefs) {
+    final rawSession = prefs.getString(_playbackSessionKey);
+    if (rawSession == null || rawSession.isEmpty) {
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(rawSession);
+      if (decoded is! Map<String, dynamic>) {
+        return;
+      }
+
+      final queueIds = decoded['queueTrackIds'];
+      if (queueIds is List<dynamic>) {
+        _restoredQueueTrackIds = queueIds
+            .whereType<String>()
+            .map((id) => id.trim())
+            .where((id) => id.isNotEmpty)
+            .toList();
+      }
+
+      final selectedTrackId = decoded['selectedTrackId'];
+      if (selectedTrackId is String && selectedTrackId.trim().isNotEmpty) {
+        _restoredSelectedTrackId = selectedTrackId.trim();
+      }
+
+      final positionMs = decoded['positionMs'];
+      if (positionMs is num) {
+        _restoredPositionMs = positionMs.toInt().clamp(0, 1 << 31);
+      }
+
+      _hasPendingPlaybackRestore =
+          _restoredQueueTrackIds.isNotEmpty || _restoredSelectedTrackId != null;
+    } catch (_) {
+      _restoredQueueTrackIds = <String>[];
+      _restoredSelectedTrackId = null;
+      _restoredPositionMs = 0;
+      _hasPendingPlaybackRestore = false;
+    }
+  }
+
   void _wireAudioListeners() {
     audioPlayer.playerStateStream.listen((_) {
+      unawaited(_savePlaybackSession());
       notifyListeners();
     });
 
     audioPlayer.currentIndexStream.listen((index) {
       if (index != null) {
         queueIndex = index;
+        unawaited(_savePlaybackSession());
         notifyListeners();
       }
+    });
+
+    audioPlayer.positionStream.listen((position) {
+      final positionMs = position.inMilliseconds;
+      if ((positionMs - _lastSavedPositionMs).abs() < 2000) {
+        return;
+      }
+      _lastSavedPositionMs = positionMs;
+      unawaited(_savePlaybackSession());
     });
   }
 
@@ -161,6 +232,7 @@ class OpenStreamController extends ChangeNotifier {
     }
 
     isLoading = true;
+    _isRestoringPlaybackSession = _hasPendingPlaybackRestore;
     error = null;
     notifyListeners();
 
@@ -179,6 +251,8 @@ class OpenStreamController extends ChangeNotifier {
 
       await _enrichTracksWithArtistSearch();
 
+      await _restorePlaybackSession();
+
       if (queue.isEmpty && tracks.isNotEmpty) {
         queue = List<Track>.from(tracks);
       }
@@ -186,6 +260,7 @@ class OpenStreamController extends ChangeNotifier {
       error = e.toString();
     } finally {
       isLoading = false;
+      _isRestoringPlaybackSession = false;
       notifyListeners();
     }
   }
@@ -239,17 +314,20 @@ class OpenStreamController extends ChangeNotifier {
       map[track.album.artist.id] = track.album.artist;
     }
 
-    primaryArtists = map.values
-        .map(
-          (artist) => Artist(
-            id: artist.id,
-            name: artist.name,
-            primaryAlbumCount: 0,
-            trackAppearanceCount: 0,
-          ),
-        )
-        .toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    primaryArtists =
+        map.values
+            .map(
+              (artist) => Artist(
+                id: artist.id,
+                name: artist.name,
+                primaryAlbumCount: 0,
+                trackAppearanceCount: 0,
+              ),
+            )
+            .toList()
+          ..sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+          );
     appearsOnArtists = <Artist>[];
   }
 
@@ -361,23 +439,28 @@ class OpenStreamController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> playTracks(List<Track> tracksToPlay, {int startIndex = 0}) async {
+  Future<void> playTracks(
+    List<Track> tracksToPlay, {
+    int startIndex = 0,
+  }) async {
     if (_api == null || tracksToPlay.isEmpty) {
       return;
     }
 
     await _runAudioAction(() async {
       queue = List<Track>.from(tracksToPlay);
+      final initialIndex = startIndex.clamp(0, queue.length - 1);
       final sources = queue
           .map((track) => AudioSource.uri(Uri.parse(_api!.streamUrl(track.id))))
           .toList();
       await audioPlayer.setAudioSource(
         ConcatenatingAudioSource(children: sources),
-        initialIndex: startIndex.clamp(0, queue.length - 1),
+        initialIndex: initialIndex,
         initialPosition: Duration.zero,
       );
-      queueIndex = startIndex;
+      queueIndex = initialIndex;
       await audioPlayer.play();
+      await _savePlaybackSession();
       notifyListeners();
     });
   }
@@ -411,7 +494,10 @@ class OpenStreamController extends ChangeNotifier {
   }
 
   Future<void> seek(Duration position) async {
-    await _runAudioAction(() => audioPlayer.seek(position));
+    await _runAudioAction(() async {
+      await audioPlayer.seek(position);
+      await _savePlaybackSession();
+    });
   }
 
   Future<void> setVolume(double value) async {
@@ -425,15 +511,89 @@ class OpenStreamController extends ChangeNotifier {
 
   Future<void> setShuffle(bool enabled) async {
     shuffleEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_shuffleEnabledKey, enabled);
+    await _savePlaybackSession();
     notifyListeners();
   }
 
   Future<void> setLoop(bool enabled) async {
     loopEnabled = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_loopEnabledKey, enabled);
     await _runAudioAction(
       () => audioPlayer.setLoopMode(enabled ? LoopMode.one : LoopMode.off),
     );
+    await _savePlaybackSession();
     notifyListeners();
+  }
+
+  Future<void> _restorePlaybackSession() async {
+    if (!_hasPendingPlaybackRestore || _api == null || tracks.isEmpty) {
+      return;
+    }
+
+    final tracksById = <String, Track>{
+      for (final track in tracks) track.id: track,
+    };
+
+    final restoredQueue = _restoredQueueTrackIds
+        .map((id) => tracksById[id])
+        .whereType<Track>()
+        .toList();
+
+    if (restoredQueue.isEmpty) {
+      _hasPendingPlaybackRestore = false;
+      return;
+    }
+
+    var selectedIndex = 0;
+    if (_restoredSelectedTrackId != null) {
+      final match = restoredQueue.indexWhere(
+        (track) => track.id == _restoredSelectedTrackId,
+      );
+      if (match >= 0) {
+        selectedIndex = match;
+      }
+    }
+
+    await _runAudioAction(() async {
+      queue = restoredQueue;
+      final sources = queue
+          .map((track) => AudioSource.uri(Uri.parse(_api!.streamUrl(track.id))))
+          .toList();
+
+      await audioPlayer.setAudioSource(
+        ConcatenatingAudioSource(children: sources),
+        initialIndex: selectedIndex,
+        initialPosition: Duration(milliseconds: _restoredPositionMs),
+      );
+      queueIndex = selectedIndex;
+      await audioPlayer.pause();
+      await _savePlaybackSession();
+    });
+
+    _hasPendingPlaybackRestore = false;
+    notifyListeners();
+  }
+
+  Future<void> _savePlaybackSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentIndex = audioPlayer.currentIndex;
+    final selectedTrackId =
+        currentIndex != null && currentIndex >= 0 && currentIndex < queue.length
+        ? queue[currentIndex].id
+        : (queueIndex >= 0 && queueIndex < queue.length
+              ? queue[queueIndex].id
+              : null);
+
+    final payload = <String, dynamic>{
+      'queueTrackIds': queue.map((track) => track.id).toList(),
+      'selectedTrackId': selectedTrackId,
+      'positionMs': audioPlayer.position.inMilliseconds,
+    };
+
+    await prefs.setString(_playbackSessionKey, jsonEncode(payload));
   }
 
   Future<void> _runAudioAction(Future<void> Function() action) async {
@@ -502,8 +662,9 @@ class OpenStreamController extends ChangeNotifier {
       albumTitle: albumTitle,
       artistName: artistName,
       artistNames: parsedTrackArtists,
-      albumArtistNames:
-          parsedAlbumArtists.isEmpty ? parsedTrackArtists : parsedAlbumArtists,
+      albumArtistNames: parsedAlbumArtists.isEmpty
+          ? parsedTrackArtists
+          : parsedAlbumArtists,
     );
     await refreshAll();
   }
@@ -555,16 +716,14 @@ class OpenStreamController extends ChangeNotifier {
     await refreshAll();
   }
 
-
   String trackStreamUrl(String trackId) => _api?.streamUrl(trackId) ?? '';
 
   String albumArtUrl(String? artPath) => _api?.albumArtUrl(artPath) ?? '';
 
   @override
   void dispose() {
+    unawaited(_savePlaybackSession());
     audioPlayer.dispose();
     super.dispose();
   }
 }
-
-

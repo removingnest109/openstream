@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models.dart';
 import 'openstream_controller.dart';
+
+const _selectedTabKey = 'openstream.selectedTab';
 
 Future<void> _showServerManagerSheet(
   BuildContext context,
@@ -140,6 +143,28 @@ class _HomePageState extends State<_HomePage> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _restoreSelectedTab();
+  }
+
+  Future<void> _restoreSelectedTab() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedTab = prefs.getInt(_selectedTabKey) ?? 0;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _tabIndex = savedTab.clamp(0, 4);
+    });
+  }
+
+  Future<void> _saveSelectedTab(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_selectedTabKey, index);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -184,9 +209,7 @@ class _HomePageState extends State<_HomePage> {
     }
 
     if (controller.isBooting) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -253,12 +276,19 @@ class _HomePageState extends State<_HomePage> {
           setState(() {
             _tabIndex = index;
           });
+          _saveSelectedTab(index);
         },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.library_music), label: 'Library'),
+          NavigationDestination(
+            icon: Icon(Icons.library_music),
+            label: 'Library',
+          ),
           NavigationDestination(icon: Icon(Icons.album), label: 'Albums'),
           NavigationDestination(icon: Icon(Icons.people), label: 'Artists'),
-          NavigationDestination(icon: Icon(Icons.playlist_play), label: 'Playlists'),
+          NavigationDestination(
+            icon: Icon(Icons.playlist_play),
+            label: 'Playlists',
+          ),
           NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
@@ -328,8 +358,9 @@ class _LibraryTab extends StatelessWidget {
       itemBuilder: (context, index) {
         final track = controller.tracks[index];
         final artUrl = controller.albumArtUrl(track.album.albumArtPath);
-        final activeTrack = controller.queueIndex >= 0 &&
-            controller.queueIndex < controller.queue.length
+        final activeTrack =
+            controller.queueIndex >= 0 &&
+                controller.queueIndex < controller.queue.length
             ? controller.queue[controller.queueIndex]
             : null;
         final selected = activeTrack?.id == track.id;
@@ -338,13 +369,12 @@ class _LibraryTab extends StatelessWidget {
           selected: selected,
           leading: CircleAvatar(
             backgroundImage: artUrl.isNotEmpty ? NetworkImage(artUrl) : null,
-            child: artUrl.isEmpty
-                ? const Icon(Icons.music_note)
-                : null,
+            child: artUrl.isEmpty ? const Icon(Icons.music_note) : null,
           ),
           title: Text(track.title),
           subtitle: Text('${track.artistName} • ${track.album.title}'),
-          onTap: () => controller.playTracks(controller.tracks, startIndex: index),
+          onTap: () =>
+              controller.playTracks(controller.tracks, startIndex: index),
           trailing: PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'edit') {
@@ -446,7 +476,8 @@ class _LibraryTab extends StatelessWidget {
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: deleteFile,
-                onChanged: (value) => setState(() => deleteFile = value ?? false),
+                onChanged: (value) =>
+                    setState(() => deleteFile = value ?? false),
                 title: const Text('Also delete file on disk'),
               ),
             ],
@@ -490,10 +521,11 @@ class _AlbumsTabState extends State<_AlbumsTab> {
     final selectedAlbum = _selectedAlbum;
 
     if (selectedAlbum != null) {
-      final tracks = controller.tracks
-          .where((track) => track.album.id == selectedAlbum.id)
-          .toList()
-        ..sort((a, b) => a.trackNumber.compareTo(b.trackNumber));
+      final tracks =
+          controller.tracks
+              .where((track) => track.album.id == selectedAlbum.id)
+              .toList()
+            ..sort((a, b) => a.trackNumber.compareTo(b.trackNumber));
 
       return Column(
         children: [
@@ -506,7 +538,9 @@ class _AlbumsTabState extends State<_AlbumsTab> {
             title: Text(selectedAlbum.title),
             subtitle: Text(selectedAlbum.displayArtistNames),
             trailing: FilledButton.tonalIcon(
-              onPressed: tracks.isEmpty ? null : () => controller.playTracks(tracks),
+              onPressed: tracks.isEmpty
+                  ? null
+                  : () => controller.playTracks(tracks),
               icon: const Icon(Icons.play_arrow),
               label: const Text('Play all'),
             ),
@@ -519,7 +553,9 @@ class _AlbumsTabState extends State<_AlbumsTab> {
                 final track = tracks[index];
                 return ListTile(
                   leading: Text(
-                    track.trackNumber > 0 ? '${track.trackNumber}' : '${index + 1}',
+                    track.trackNumber > 0
+                        ? '${track.trackNumber}'
+                        : '${index + 1}',
                   ),
                   title: Text(track.title),
                   subtitle: Text(track.artistName),
@@ -539,8 +575,10 @@ class _AlbumsTabState extends State<_AlbumsTab> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount =
-            (constraints.maxWidth / 240).floor().clamp(2, 8).toInt();
+        final crossAxisCount = (constraints.maxWidth / 240)
+            .floor()
+            .clamp(2, 8)
+            .toInt();
 
         return GridView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -631,15 +669,17 @@ class _ArtistsTabState extends State<_ArtistsTab> {
   }
 
   bool _trackHasArtist(Track track, Artist artist) {
-    final collaborators = track.artists.isNotEmpty ? track.artists : track.album.artists;
+    final collaborators = track.artists.isNotEmpty
+        ? track.artists
+        : track.album.artists;
     if (collaborators.isNotEmpty) {
       return collaborators.any((item) => item.id == artist.id);
     }
 
     final normalizedTarget = artist.name.trim().toLowerCase();
-    final flattened = _splitArtistLabel(track.artistName)
-        .map((name) => name.toLowerCase())
-        .toList();
+    final flattened = _splitArtistLabel(
+      track.artistName,
+    ).map((name) => name.toLowerCase()).toList();
     if (flattened.isNotEmpty) {
       return flattened.contains(normalizedTarget);
     }
@@ -665,9 +705,9 @@ class _ArtistsTabState extends State<_ArtistsTab> {
 
     if (selectedArtist != null && selectedAlbum != null) {
       final tracks = controller.tracks.where((track) {
-        return track.album.id == selectedAlbum.id && _trackHasArtist(track, selectedArtist);
-      }).toList()
-        ..sort((a, b) => a.trackNumber.compareTo(b.trackNumber));
+        return track.album.id == selectedAlbum.id &&
+            _trackHasArtist(track, selectedArtist);
+      }).toList()..sort((a, b) => a.trackNumber.compareTo(b.trackNumber));
 
       return Column(
         children: [
@@ -680,7 +720,9 @@ class _ArtistsTabState extends State<_ArtistsTab> {
             title: Text(selectedAlbum.title),
             subtitle: Text('${selectedArtist.name} • ${tracks.length} tracks'),
             trailing: FilledButton.tonalIcon(
-              onPressed: tracks.isEmpty ? null : () => controller.playTracks(tracks),
+              onPressed: tracks.isEmpty
+                  ? null
+                  : () => controller.playTracks(tracks),
               icon: const Icon(Icons.play_arrow),
               label: const Text('Play all'),
             ),
@@ -693,7 +735,9 @@ class _ArtistsTabState extends State<_ArtistsTab> {
                 final track = tracks[index];
                 return ListTile(
                   leading: Text(
-                    track.trackNumber > 0 ? '${track.trackNumber}' : '${index + 1}',
+                    track.trackNumber > 0
+                        ? '${track.trackNumber}'
+                        : '${index + 1}',
                   ),
                   title: Text(track.title),
                   subtitle: Text(track.artistName),
@@ -722,9 +766,13 @@ class _ArtistsTabState extends State<_ArtistsTab> {
       }
 
       final albums = primaryAlbumMap.values.toList()
-        ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        ..sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
       final appearsOnAlbums = appearsOnAlbumMap.values.toList()
-        ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        ..sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
       final totalAlbumCount = albums.length + appearsOnAlbums.length;
 
       return Column(
@@ -750,7 +798,10 @@ class _ArtistsTabState extends State<_ArtistsTab> {
                     padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
                     child: Text(
                       'Albums',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   for (final album in albums)
@@ -766,7 +817,10 @@ class _ArtistsTabState extends State<_ArtistsTab> {
                     padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
                     child: Text(
                       'Appears on',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   for (final album in appearsOnAlbums)
@@ -778,7 +832,9 @@ class _ArtistsTabState extends State<_ArtistsTab> {
                     ),
                 ],
                 if (albums.isEmpty && appearsOnAlbums.isEmpty)
-                  const ListTile(title: Text('No albums found for this artist')),
+                  const ListTile(
+                    title: Text('No albums found for this artist'),
+                  ),
               ],
             ),
           ),
@@ -857,7 +913,8 @@ class _PlaylistsTab extends StatelessWidget {
                         OverflowBar(
                           children: [
                             FilledButton.tonalIcon(
-                              onPressed: () => controller.playTracks(playlist.tracks),
+                              onPressed: () =>
+                                  controller.playTracks(playlist.tracks),
                               icon: const Icon(Icons.play_arrow),
                               label: const Text('Play all'),
                             ),
@@ -1033,11 +1090,32 @@ class _PlayerBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMobilePlatform = !kIsWeb &&
+    if (controller.isRestoringPlaybackSession) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 56),
+          ],
+        ),
+      );
+    }
+
+    final isMobilePlatform =
+        !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS);
     final queue = controller.queue;
-    final current = controller.queueIndex >= 0 && controller.queueIndex < queue.length
+    final current =
+        controller.queueIndex >= 0 && controller.queueIndex < queue.length
         ? queue[controller.queueIndex]
         : null;
 
@@ -1075,7 +1153,8 @@ class _PlayerBar extends StatelessWidget {
               ),
               IconButton(
                 tooltip: 'Shuffle',
-                onPressed: () => controller.setShuffle(!controller.shuffleEnabled),
+                onPressed: () =>
+                    controller.setShuffle(!controller.shuffleEnabled),
                 icon: Icon(
                   Icons.shuffle,
                   color: controller.shuffleEnabled
@@ -1092,7 +1171,9 @@ class _PlayerBar extends StatelessWidget {
                 tooltip: 'Play/Pause',
                 onPressed: controller.togglePlayPause,
                 icon: Icon(
-                  controller.audioPlayer.playing ? Icons.pause : Icons.play_arrow,
+                  controller.audioPlayer.playing
+                      ? Icons.pause
+                      : Icons.play_arrow,
                 ),
               ),
               IconButton(
@@ -1105,8 +1186,9 @@ class _PlayerBar extends StatelessWidget {
                 onPressed: () => controller.setLoop(!controller.loopEnabled),
                 icon: Icon(
                   Icons.repeat,
-                  color:
-                      controller.loopEnabled ? Theme.of(context).colorScheme.primary : null,
+                  color: controller.loopEnabled
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
               ),
             ],
@@ -1117,7 +1199,8 @@ class _PlayerBar extends StatelessWidget {
               return StreamBuilder<Duration?>(
                 stream: controller.audioPlayer.durationStream,
                 builder: (context, durationSnapshot) {
-                  final currentPosition = positionSnapshot.data ?? Duration.zero;
+                  final currentPosition =
+                      positionSnapshot.data ?? Duration.zero;
                   final total = durationSnapshot.data ?? Duration.zero;
                   final max = total.inMilliseconds <= 0
                       ? 1.0
@@ -1174,6 +1257,3 @@ class _PlayerBar extends StatelessWidget {
     return '$minutes:$seconds';
   }
 }
-
-
-
