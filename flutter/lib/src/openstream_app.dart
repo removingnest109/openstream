@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -1001,22 +1004,134 @@ class _PlaylistsTab extends StatelessWidget {
   }
 }
 
-class _SettingsTab extends StatelessWidget {
+class _SettingsTab extends StatefulWidget {
   const _SettingsTab({required this.controller});
 
   final OpenStreamController controller;
 
-  static const _swatches = <int>[
-    0xFF6D4AFF,
-    0xFF00BFA5,
-    0xFF42A5F5,
-    0xFFFF7043,
-    0xFFFFC107,
-    0xFFE91E63,
-  ];
+  @override
+  State<_SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends State<_SettingsTab> {
+  static const int _defaultAccentColor = 0xFF6D4AFF;
+
+  final TextEditingController _hexController = TextEditingController();
+
+  int _red = 0x6D;
+  int _green = 0x4A;
+  int _blue = 0xFF;
+  double _hue = 0;
+  double _saturation = 0;
+  double _value = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncFromSeedColor(widget.controller.seedColorValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant _SettingsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller.seedColorValue != _currentColorValue) {
+      _syncFromSeedColor(widget.controller.seedColorValue);
+    }
+  }
+
+  @override
+  void dispose() {
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  int get _currentColorValue =>
+      0xFF000000 | (_red << 16) | (_green << 8) | _blue;
+
+  void _syncFromSeedColor(int colorValue) {
+    final color = Color(colorValue);
+    final hsv = HSVColor.fromColor(color);
+    _red = color.red;
+    _green = color.green;
+    _blue = color.blue;
+    _hue = hsv.hue;
+    _saturation = hsv.saturation;
+    _value = hsv.value;
+    _hexController.text = _hexFromRgb(_red, _green, _blue);
+  }
+
+  String _hexFromRgb(int r, int g, int b) {
+    return '${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}'
+        .toUpperCase();
+  }
+
+  Future<void> _applyRgb({
+    required int red,
+    required int green,
+    required int blue,
+  }) async {
+    setState(() {
+      _red = red.clamp(0, 255);
+      _green = green.clamp(0, 255);
+      _blue = blue.clamp(0, 255);
+      final hsv = HSVColor.fromColor(Color(_currentColorValue));
+      _hue = hsv.hue;
+      _saturation = hsv.saturation;
+      _value = hsv.value;
+      _hexController.text = _hexFromRgb(_red, _green, _blue);
+    });
+    unawaited(widget.controller.setSeedColor(_currentColorValue));
+  }
+
+  void _applyHsv({
+    required double hue,
+    required double saturation,
+    required double value,
+  }) {
+    final normalizedHue = hue.clamp(0.0, 360.0);
+    final normalizedSaturation = saturation.clamp(0.0, 1.0);
+    final normalizedValue = value.clamp(0.0, 1.0);
+    final color = HSVColor.fromAHSV(
+      1,
+      normalizedHue,
+      normalizedSaturation,
+      normalizedValue,
+    ).toColor();
+
+    setState(() {
+      _hue = normalizedHue;
+      _saturation = normalizedSaturation;
+      _value = normalizedValue;
+      _red = color.red;
+      _green = color.green;
+      _blue = color.blue;
+      _hexController.text = _hexFromRgb(_red, _green, _blue);
+    });
+
+    unawaited(widget.controller.setSeedColor(_currentColorValue));
+  }
+
+  Future<void> _applyHexIfValid(String value) async {
+    final normalized = value.trim().toUpperCase();
+    if (normalized.length != 6) {
+      return;
+    }
+    final parsed = int.tryParse(normalized, radix: 16);
+    if (parsed == null) {
+      return;
+    }
+    await _applyRgb(
+      red: (parsed >> 16) & 0xFF,
+      green: (parsed >> 8) & 0xFF,
+      blue: parsed & 0xFF,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+    final previewColor = Color(_currentColorValue);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -1032,22 +1147,250 @@ class _SettingsTab extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final swatch in _swatches)
-              InkWell(
-                onTap: () => controller.setSeedColor(swatch),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Color(swatch),
-                  child: controller.seedColorValue == swatch
-                      ? const Icon(Icons.check, color: Colors.white)
-                      : null,
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: previewColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _hexController,
+                        maxLength: 6,
+                        decoration: const InputDecoration(
+                          labelText: 'Hex color',
+                          prefixText: '#',
+                          counterText: '',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9a-fA-F]'),
+                          ),
+                          LengthLimitingTextInputFormatter(6),
+                        ],
+                        onChanged: (value) async {
+                          final normalized = value.toUpperCase();
+                          if (normalized != value) {
+                            _hexController.value = _hexController.value
+                                .copyWith(
+                                  text: normalized,
+                                  selection: TextSelection.collapsed(
+                                    offset: normalized.length,
+                                  ),
+                                );
+                          }
+                          await _applyHexIfValid(normalized);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      onPressed: () async {
+                        await _applyRgb(
+                          red: (_defaultAccentColor >> 16) & 0xFF,
+                          green: (_defaultAccentColor >> 8) & 0xFF,
+                          blue: _defaultAccentColor & 0xFF,
+                        );
+                      },
+                      child: const Text('Reset'),
+                    ),
+                  ],
                 ),
-              ),
-          ],
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 220,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final hueColor = HSVColor.fromAHSV(
+                              1,
+                              _hue,
+                              1,
+                              1,
+                            ).toColor();
+                            final width = constraints.maxWidth;
+                            final height = constraints.maxHeight;
+                            final markerX = _saturation * width;
+                            final markerY = (1 - _value) * height;
+
+                            void handlePosition(Offset localPosition) {
+                              final nextSaturation = (localPosition.dx / width)
+                                  .clamp(0.0, 1.0);
+                              final nextValue =
+                                  (1 - (localPosition.dy / height)).clamp(
+                                    0.0,
+                                    1.0,
+                                  );
+                              _applyHsv(
+                                hue: _hue,
+                                saturation: nextSaturation,
+                                value: nextValue,
+                              );
+                            }
+
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanDown: (details) =>
+                                  handlePosition(details.localPosition),
+                              onPanUpdate: (details) =>
+                                  handlePosition(details.localPosition),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: <Color>[
+                                              Colors.white,
+                                              hueColor,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: <Color>[
+                                              Colors.transparent,
+                                              Colors.black,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: markerX - 8,
+                                      top: markerY - 8,
+                                      child: IgnorePointer(
+                                        child: Container(
+                                          width: 16,
+                                          height: 16,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.black54,
+                                                blurRadius: 2,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 28,
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final height = constraints.maxHeight;
+                            final markerY = (_hue / 360) * height;
+
+                            void handleHue(Offset localPosition) {
+                              final nextHue =
+                                  ((localPosition.dy / height) * 360).clamp(
+                                    0.0,
+                                    360.0,
+                                  );
+                              _applyHsv(
+                                hue: nextHue,
+                                saturation: _saturation,
+                                value: _value,
+                              );
+                            }
+
+                            return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanDown: (details) =>
+                                  handleHue(details.localPosition),
+                              onPanUpdate: (details) =>
+                                  handleHue(details.localPosition),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: const <Color>[
+                                              Color(0xFFFF0000),
+                                              Color(0xFFFFFF00),
+                                              Color(0xFF00FF00),
+                                              Color(0xFF00FFFF),
+                                              Color(0xFF0000FF),
+                                              Color(0xFFFF00FF),
+                                              Color(0xFFFF0000),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      left: 2,
+                                      right: 2,
+                                      top: markerY - 2,
+                                      child: IgnorePointer(
+                                        child: Container(
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              2,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         const Divider(height: 28),
         if (kIsWeb) ...[
@@ -1102,9 +1445,7 @@ class _PlayerBar extends StatelessWidget {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 56),
-          ],
+          children: [const SizedBox(height: 56)],
         ),
       );
     }
