@@ -15,11 +15,35 @@ Openstream is a lightweight, portable self-hosted music library and streaming se
 
 ## Getting Started
 
-### Download the binary
+### Install From A Release
 
-Binaries can be downloaded from the Releases page of this repo.
+Release archives can be downloaded from the Releases page of this repo.
+Each archive contains an `openstream/` folder with:
 
-### Start the server
+- the target binary
+- `webui/`
+- `install.sh`
+- `openstream.service`
+
+Extract the archive, enter the extracted folder, and run:
+
+```bash
+sudo ./install.sh
+```
+
+`install.sh` reads the paths directly from `openstream.service`, copies the binary to the unit's `ExecStart` path, copies the web bundle to the unit's `WEB_UI_DIR`, installs the service into `/etc/systemd/system/`, reloads systemd, and enables the service.
+
+The included systemd unit currently expects these runtime paths:
+
+- binary: `/bin/openstream`
+- web UI: `/opt/openstream/webui`
+- music library: `/media/music`
+- database: `/media/music/openstream.db`
+- port: `80`
+
+### Run Manually
+
+If you want to run the server directly instead of installing the systemd service:
 
 ```bash
 # Example with default options
@@ -50,13 +74,6 @@ Use `scripts/package-release.sh all` to build release zip archives that include 
 ## Deployment
 
 The included systemd unit is [`scripts/openstream.service`](scripts/openstream.service).
-It currently expects these runtime paths:
-
-- binary: `/bin/openstream`
-- web UI: `/opt/openstream/webui`
-- music library: `/media/music`
-- database: `/media/music/openstream.db`
-- port: `80`
 
 Build and refresh the packaged assets with:
 
@@ -76,13 +93,6 @@ Or for a single target:
 ```bash
 scripts/package-release.sh linux-arm64
 ```
-
-Each zip contains an `openstream/` folder with everything needed to install from that extracted directory:
-
-- the target binary
-- `webui/`
-- `install.sh`
-- `openstream.service`
 
 Install the binary, web UI, and systemd unit with:
 
