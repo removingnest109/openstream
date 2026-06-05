@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
@@ -17,6 +18,7 @@ const _seedColorKey = 'openstream.seedColor';
 const _darkModeKey = 'openstream.darkMode';
 const _volumeKey = 'openstream.volume';
 const _shuffleEnabledKey = 'openstream.shuffleEnabled';
+const _trueShuffleKey = 'openstream.trueShuffle';
 const _loopEnabledKey = 'openstream.loopEnabled';
 const _playbackSessionKey = 'openstream.playbackSession';
 const _legacyWebServerUrl = 'http://localhost:9090';
@@ -59,8 +61,12 @@ class OpenStreamController extends ChangeNotifier {
   int queueIndex = -1;
 
   bool shuffleEnabled = false;
+  bool trueShuffle = true;
   bool loopEnabled = false;
   double volume = 1.0;
+
+  final List<int> _shuffleHistory = <int>[];
+  final _random = Random();
 
   int seedColorValue = 0xFF6D4AFF;
   bool darkMode = true;
@@ -129,6 +135,7 @@ class OpenStreamController extends ChangeNotifier {
     darkMode = prefs.getBool(_darkModeKey) ?? true;
     volume = (prefs.getDouble(_volumeKey) ?? 1.0).clamp(0.0, 1.0);
     shuffleEnabled = prefs.getBool(_shuffleEnabledKey) ?? false;
+    trueShuffle = prefs.getBool(_trueShuffleKey) ?? true;
     loopEnabled = prefs.getBool(_loopEnabledKey) ?? false;
     _loadSavedPlaybackSession(prefs);
 
@@ -449,7 +456,15 @@ class OpenStreamController extends ChangeNotifier {
 
     await _runAudioAction(() async {
       queue = List<Track>.from(tracksToPlay);
-      final initialIndex = startIndex.clamp(0, queue.length - 1);
+      _shuffleHistory.clear();
+      var initialIndex = startIndex.clamp(0, queue.length - 1);
+      if (shuffleEnabled && !trueShuffle && queue.length > 1) {
+        final startTrack = queue[initialIndex];
+        final rest = [...queue]..removeAt(initialIndex);
+        rest.shuffle(_random);
+        queue = [startTrack, ...rest];
+        initialIndex = 0;
+      }
       final sources = queue
           .map((track) => AudioSource.uri(Uri.parse(_api!.streamUrl(track.id))))
           .toList();
@@ -477,11 +492,16 @@ class OpenStreamController extends ChangeNotifier {
 
   Future<void> nextTrack() async {
     await _runAudioAction(() async {
-      if (shuffleEnabled) {
+      if (shuffleEnabled && trueShuffle) {
         if (queue.isEmpty) {
           return;
         }
-        final next = DateTime.now().millisecondsSinceEpoch % queue.length;
+        final currentIdx = audioPlayer.currentIndex ?? queueIndex;
+        _shuffleHistory.add(currentIdx);
+        int next;
+        do {
+          next = _random.nextInt(queue.length);
+        } while (queue.length > 1 && next == currentIdx);
         await audioPlayer.seek(Duration.zero, index: next);
         return;
       }
@@ -490,7 +510,23 @@ class OpenStreamController extends ChangeNotifier {
   }
 
   Future<void> previousTrack() async {
-    await _runAudioAction(() => audioPlayer.seekToPrevious());
+    await _runAudioAction(() async {
+      if (shuffleEnabled && trueShuffle) {
+        if (_shuffleHistory.isNotEmpty) {
+          final prevIdx = _shuffleHistory.removeLast();
+          await audioPlayer.seek(Duration.zero, index: prevIdx);
+        } else {
+          await audioPlayer.seek(Duration.zero);
+        }
+        return;
+      }
+      final currentIdx = audioPlayer.currentIndex ?? queueIndex;
+      if (currentIdx > 0) {
+        await audioPlayer.seek(Duration.zero, index: currentIdx - 1);
+      } else {
+        await audioPlayer.seek(Duration.zero);
+      }
+    });
   }
 
   Future<void> seek(Duration position) async {
@@ -511,10 +547,55 @@ class OpenStreamController extends ChangeNotifier {
 
   Future<void> setShuffle(bool enabled) async {
     shuffleEnabled = enabled;
+    _shuffleHistory.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_shuffleEnabledKey, enabled);
+    if (!trueShuffle && enabled) {
+      await _runAudioAction(_applyQueueShuffle);
+    }
     await _savePlaybackSession();
     notifyListeners();
+  }
+
+  Future<void> setTrueShuffle(bool enabled) async {
+    trueShuffle = enabled;
+    _shuffleHistory.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_trueShuffleKey, enabled);
+    if (shuffleEnabled && !enabled) {
+      await _runAudioAction(_applyQueueShuffle);
+    }
+    notifyListeners();
+  }
+
+  Future<void> _applyQueueShuffle() async {
+    if (_api == null || queue.isEmpty) {
+      return;
+    }
+    final currentIdx = (audioPlayer.currentIndex ?? queueIndex).clamp(
+      0,
+      queue.length - 1,
+    );
+    final currentTrack = queue[currentIdx];
+    final currentPosition = audioPlayer.position;
+    final wasPlaying = audioPlayer.playing;
+
+    final rest = [...queue]..removeAt(currentIdx);
+    rest.shuffle(_random);
+    queue = [currentTrack, ...rest];
+    queueIndex = 0;
+
+    final sources = queue
+        .map((t) => AudioSource.uri(Uri.parse(_api!.streamUrl(t.id))))
+        .toList();
+    await audioPlayer.setAudioSource(
+      ConcatenatingAudioSource(children: sources),
+      initialIndex: 0,
+      initialPosition: currentPosition,
+    );
+    if (wasPlaying) {
+      await audioPlayer.play();
+    }
   }
 
   Future<void> setLoop(bool enabled) async {

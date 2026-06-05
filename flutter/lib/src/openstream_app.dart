@@ -1389,6 +1389,15 @@ class _SettingsTabState extends State<_SettingsTab> {
           value: controller.darkMode,
           onChanged: controller.setDarkMode,
         ),
+        SwitchListTile(
+          title: const Text('True shuffle'),
+          subtitle: const Text(
+            'When on, skip picks a completely random song each time. '
+            'When off, shuffle randomizes the list and plays through it in order.',
+          ),
+          value: controller.trueShuffle,
+          onChanged: controller.setTrueShuffle,
+        ),
         const SizedBox(height: 10),
         const Text(
           'Accent color',
